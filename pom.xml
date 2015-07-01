@@ -42,7 +42,8 @@
 	<dependency>
 	    <groupId>com.github.bgithub1</groupId>
 	    <artifactId>common-libs</artifactId>
-	    <version>3a805b0a8b</version>
+	    <version>5d4d10d2d3</version>
+	    <!--<version>3a805b0a8b</version>-->
 	</dependency>
 	
 		<dependency>
@@ -50,22 +51,21 @@
 			<artifactId>jddpclient</artifactId>
 			<version>86d91a2e0c</version>
 		</dependency>
+
+<!--  
+		<dependency>
+			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
+			<artifactId>java-lists-in-meteor</artifactId>
+			<version>ec4f53bfd2</version>
+		</dependency>	
+-->
+		<!--<version>86d91a2e0c</version>-->
+
 		<dependency>
 			<groupId>com.billybyte</groupId>
 			<artifactId>java-lists-in-meteor</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>		
-
-<!--
-		<dependency>
-			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
-			<artifactId>java-lists-in-meteor</artifactId>
-			<version>d43afd6de8</version>
-		</dependency>	
--->
-		<!--<version>86d91a2e0c</version>-->
-
-	
 
 
 <!--  
