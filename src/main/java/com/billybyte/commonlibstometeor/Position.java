@@ -293,7 +293,8 @@ public class Position extends MeteorBaseListItem {
 			String meteorUrl,
 			Integer meteorPort,
 			String adminEmail,
-			String adminPass){
+			String adminPass,
+			Map<String,String> selectorMap){
 		MeteorListSendReceive<Position> mlsr = null;
 		try {
 			mlsr =
@@ -306,7 +307,7 @@ public class Position extends MeteorBaseListItem {
 		
 		
 
-		List<Position> positionList = mlsr.getList(null);
+		List<Position> positionList = mlsr.getList(selectorMap);
 		return positionList;
 		
 	}
@@ -315,7 +316,7 @@ public class Position extends MeteorBaseListItem {
 
 	@Override
 	public String toString() {
-		return account + ", " + strategy + ", " + type + ", " + exch + ", "
+		return super.toString() + "," +account + ", " + strategy + ", " + type + ", " + exch + ", "
 				+ symbol + ", " + curr + ", " + year + ", " + month + ", "
 				+ day + ", " + putCall + ", " + strike + ", " + qty;
 	}
