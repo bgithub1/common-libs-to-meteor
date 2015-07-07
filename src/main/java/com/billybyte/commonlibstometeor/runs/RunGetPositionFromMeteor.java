@@ -22,5 +22,8 @@ public class RunGetPositionFromMeteor {
 		pList = 
 				Position.getPositionFromMeteor(ab.meteorUrl, ab.meteorPort, ab.adminEmail, ab.adminPass,selectorMap);		Utils.prt("get positions:");
 		CollectionsStaticMethods.prtListItems(pList);
+		
 	}
+	
+	
 }

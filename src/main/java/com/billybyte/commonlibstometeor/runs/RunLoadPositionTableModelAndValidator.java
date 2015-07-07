@@ -13,15 +13,19 @@ public class RunLoadPositionTableModelAndValidator {
 	public static void main(String[] args) {
 		ArgBundle ab = new ArgBundle(args);
 		Map<String, String> argPairs = ab.argPairs;
-		MeteorTableModel tm = Position.buildPositionTableModel();
 
-//		List<MeteorTableModel> mtmList = 
-//				new ArrayList<MeteorTableModel>();
-//		mtmList.add(tm);
-//
-//		MeteorTableModel.sendMeteorTableModels(ab.meteorUrl,ab.meteorPort,
-//				ab.adminEmail,
-//				ab.adminPass, tm);
+		String buildTableModel = argPairs.get("buildTableModel");
+		Boolean buildIt = buildTableModel==null ? true : new Boolean(buildTableModel);
+		if(buildIt){
+			MeteorTableModel tm = Position.buildPositionTableModel();
+			List<MeteorTableModel> mtmList = 
+					new ArrayList<MeteorTableModel>();
+			mtmList.add(tm);
+
+			MeteorTableModel.sendMeteorTableModels(ab.meteorUrl,ab.meteorPort,
+					ab.adminEmail,
+					ab.adminPass, tm);
+		}
 		
 		String snPath = argPairs.get("shortNamePath");
 		if(snPath==null){

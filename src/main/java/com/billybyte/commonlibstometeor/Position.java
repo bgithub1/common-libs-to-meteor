@@ -142,10 +142,6 @@ public class Position extends MeteorBaseListItem {
 	 */
 	public static final MeteorColumnModel[] buildMetColModelArray(){
 
-//		MeteorColumnModel idCm = 
-//				new MeteorColumnModel("_id","_id","_id",null);
-//		MeteorColumnModel userIdCm = 
-//				new MeteorColumnModel("userId","userId","userId",null);
 		MeteorColumnModel accountCm = 
 				new MeteorColumnModel("account","account","account",null);
 		MeteorColumnModel strategyCm = 
@@ -304,15 +300,13 @@ public class Position extends MeteorBaseListItem {
 		} catch (URISyntaxException e) {
 			throw Utils.IllState(e);
 		}
-		
-		
 
 		List<Position> positionList = mlsr.getList(selectorMap);
 		return positionList;
 		
 	}
 
-
+	
 
 	@Override
 	public String toString() {
