@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import misc.PosClDetailed;
 
+import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.marketdata.SecDefQueryAllMarkets;
 import com.billybyte.meteorjava.JsonNestedList;
@@ -134,7 +135,24 @@ public class Position extends MeteorBaseListItem {
 		return qty;
 	}
 
-
+	public String getShortName(){
+		String sep = MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR;
+		String pc = getPutCall();
+		BigDecimal strike = getStrike();
+		if(pc!=null){
+			if(pc.compareTo("F")==0 || pc.compareTo("S")==0) {
+				pc=null;
+				strike = BigDecimal.ZERO;
+			}
+			
+		}
+		return getSymbol() + sep +
+				getType() + sep +
+				getExch() + sep +
+				getCurr() + sep +
+				(getYear()*100+getMonth()) +
+				(strike.compareTo(BigDecimal.ZERO)>0 ?  sep +getPutCall()+sep+getStrike() : "");
+	}
 
 	/**
 	 * Build an array of MeteorColumnModel to display in Meteor

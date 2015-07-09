@@ -21,6 +21,7 @@ import com.billybyte.marketdata.SecDef;
 import com.billybyte.marketdata.SecDefQueryAllMarkets;
 import com.billybyte.meteorjava.MeteorListSendReceive;
 import com.billybyte.meteorjava.MeteorTableModel;
+import com.billybyte.meteorjava.MeteorValidator;
 import com.billybyte.meteorjava.staticmethods.Utils;
 
 public class RunGreeksToMeteor {
@@ -29,8 +30,10 @@ public class RunGreeksToMeteor {
 	
 	public static void main(String[] args) {
 		ArgBundle ab = new ArgBundle(args);
-		
-		DerivativeSetEngine dse = buildDse();
+		String dseXmlPath = ab.argPairs.get("dseXmlPath");
+		// if dseXmlPath is null, then build a default engine for
+		//   stocks from Yahoo only
+		DerivativeSetEngine dse = buildDse(dseXmlPath);
 		
 		Double badRet = Double.NEGATIVE_INFINITY;
 		Tuple<List<String>,List<GreeksData>> greeksTuple = 
@@ -117,8 +120,17 @@ public class RunGreeksToMeteor {
 		return tableModel;
 	}
 	
-	private static final DerivativeSetEngine buildDse(){
-		return DerivativeSetEngineBuilder.dseForStocksUsingYahoo();
+	private static final DerivativeSetEngine buildDse(String dseXmlPath){
+		if(dseXmlPath==null){
+			return DerivativeSetEngineBuilder.dseForStocksUsingYahoo();
+		}else{
+			return com.billybyte.commonstaticmethods.Utils.springGetBean(
+					DerivativeSetEngine.class, 
+					dseXmlPath, 
+					"dse");
+
+//			return DerivativeSetEngineBuilder.dseForStocksUsingYahooAndSpring(null,dseXmlPath);
+		}
 	}
 	
 	/**
@@ -130,17 +142,12 @@ public class RunGreeksToMeteor {
 	 * 			a map of shortName to an inner map of  DerivativeSensitivityTypeInterface to Double (greek values)
 	 * For any problems, the greek value with be errorValueToReturn.
 	 */
-	private static final Tuple<List<String>,List<GreeksData>> getGreeks(
+	public static final Tuple<List<String>,List<GreeksData>> getGreeks(
 			String userId,
 			String account,String strategy,
 			DerivativeSetEngine dse,
 			Set<String> shortNameSet,
 			Double errorValueToReturn){
-//		Map<String,List<GreeksData>> ret = 		// populate with dummy values
-//				new HashMap<String, List<GreeksData>>();
-//		for(String shortName : shortNameSet){
-//			ret.put(shortName, new ArrayList<GreeksData>());
-//		}
 		List<GreeksData> gdRet = new ArrayList<GreeksData>();
 		// get all the greek types (e.g delta, gamma, etc) that you'll need
 		//   for the MeteorTableModel of GreeksData.
@@ -165,7 +172,8 @@ public class RunGreeksToMeteor {
 			SecDef sd = sdQuery.get(shortName, 1, TimeUnit.SECONDS);
 
 			Tuple<List<String>,GreeksData> gdTuple = GreeksData.fromDerivativeReturn(
-					null, userId,account,strategy, sd, errorValueToReturn, 4,drSenseMap.get(shortName));
+					1.0,null, userId,account,strategy, sd, 
+					errorValueToReturn, 4,drSenseMap.get(shortName));
 			problems.addAll(gdTuple.getT1_instance());
 			gdRet.add(gdTuple.getT2_instance());
 		}
@@ -206,5 +214,11 @@ public class RunGreeksToMeteor {
 		} catch (InterruptedException e) {
 			throw Utils.IllState(e);
 		}
+		
+		// send validator
+		MeteorValidator greeksDataValidator = 
+				GreeksData.buildValidator();
+		greeksDataValidator.sendValidator(meteorUrl, meteorPort, adminEmail, adminPass);
+
 	}
 }

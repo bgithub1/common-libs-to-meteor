@@ -2,7 +2,9 @@ package com.billybyte.commonlibstometeor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.billybyte.commoncollections.Tuple;
 import com.billybyte.dse.outputs.DeltaDerSen;
@@ -15,6 +17,7 @@ import com.billybyte.dse.outputs.VegaDerSen;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.meteorjava.MeteorBaseListItem;
 import com.billybyte.meteorjava.MeteorColumnModel;
+import com.billybyte.meteorjava.MeteorValidator;
 
 public class GreeksData extends MeteorBaseListItem{
 	private static final DerivativeSensitivityTypeInterface deltaDerSen = new DeltaDerSen();
@@ -140,6 +143,7 @@ public class GreeksData extends MeteorBaseListItem{
 	
 	
 	public static final Tuple<List<String>,GreeksData> fromDerivativeReturn(
+			double qty,
 			String _id,
 			String userId,
 			String account,
@@ -159,7 +163,7 @@ public class GreeksData extends MeteorBaseListItem{
 		int month = sd.getContractMonth();
 		Integer day = sd.getContractDay();
 		day = day==null ? 0 : day;
-		int monthDay = month*100+day;
+//		int monthDay = month*100+day;
 		String putCall = sd.getRight();
 		BigDecimal strike = sd.getStrike();
 		Double delta=badRet;
@@ -199,6 +203,12 @@ public class GreeksData extends MeteorBaseListItem{
 				rho = Math.round(rho*multiplier)/multiplier;
 			}
 		}
+		delta = delta * qty;
+		gamma = gamma * qty;
+		vega = vega * qty;
+		theta = theta * qty;
+		rho = rho * qty;
+		
 		GreeksData ret = 
 				new GreeksData(_id, userId, account, strategy, type, exch, symbol, curr, year, month, day, putCall, strike, delta, gamma, vega, theta, rho);
 		return new Tuple<List<String>, GreeksData>(problems, ret);
@@ -256,11 +266,31 @@ public class GreeksData extends MeteorBaseListItem{
 		return ret;
 	}
 	
+	
+	@SuppressWarnings("rawtypes")
+	public static final MeteorValidator buildValidator(){
+		Map jnestMap = null;
+		Class<?> classOfDataToBeValidated = GreeksData.class;
+		List<String> dependentFieldValidationOrderList = new ArrayList<String>();
+		Map<String, List<String>> independentFields = new HashMap<String, List<String>>();
+		List<String> freeFields = new ArrayList<String>();
+		MeteorValidator ret = 
+				new MeteorValidator(
+						classOfDataToBeValidated, jnestMap, 
+						dependentFieldValidationOrderList, 
+						independentFields, freeFields);
+		return ret;
+		
+	}
+	
+	
+	
 	public static final DerivativeSensitivityTypeInterface[] buildDseSenseArray(){
 		DerivativeSensitivityTypeInterface[] ret = {
 				deltaDerSen,gammaDerSen,vegaDerSen,thetaDerSen,rhoDerSen
 		};
 		return ret;
 	}
+
 	
 }
