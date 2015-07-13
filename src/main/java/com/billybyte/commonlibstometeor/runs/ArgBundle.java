@@ -6,14 +6,15 @@ import java.util.Map;
 import com.billybyte.meteorjava.staticmethods.Utils;
 
 public class ArgBundle {
-	final Map<String, String> argPairs;
-	final String userId ;
-	final String meteorUrl;
-	final Integer meteorPort;
-	final String adminEmail ;
-	final String adminPass ;
-	final String account ;
-	final String strategy ;
+	final public Map<String, String> argPairs;
+	final public String userId ;
+	final public String meteorUrl;
+	final public Integer meteorPort;
+	final public String adminEmail ;
+	final public String adminPass ;
+	final public String account ;
+	final public String strategy ;
+	final public String dseXmlPath ;
 	
 	private static final String DEF_ADMIN_EMAIL = "admin1@demo.com";
 	private static final String DEF_ADMIN_PASS = "admin1";
@@ -21,6 +22,7 @@ public class ArgBundle {
 	private static final Integer DEF_PORT = 3000;
 	private static final String DEF_ACC = "a1";
 	private static final String DEF_STRAT = "s1";
+	private static final String DEF_DSEPATH = "beans_DefaultDse.xml";
 
 	public ArgBundle(String[] args){
 		this.argPairs = 
@@ -37,6 +39,8 @@ public class ArgBundle {
 		this.adminPass = adp==null ? DEF_ADMIN_PASS : adp;
 		this.account = argPairs.get("account")==null ? DEF_ACC : argPairs.get("account");
 		this.strategy = argPairs.get("strategy")==null ? DEF_STRAT : argPairs.get("strategy");
+		this.dseXmlPath = argPairs.get("dseXmlPath")==null ? DEF_DSEPATH : argPairs.get("dseXmlPath");
+		
 		Utils.prt(
 				"userId:"+this.userId + "," +
 						"userId:"+this.userId + "," +
@@ -45,7 +49,8 @@ public class ArgBundle {
 						"adminEmail:"+this.adminEmail + "," +
 						"adminPass:"+this.adminPass + "," +
 						"account:"+this.account + "," +
-						"strategy:"+this.strategy 
+						"strategy:"+this.strategy  + "," +
+						"dseXmlPath:"+this.dseXmlPath 
 		);
 	}
 	

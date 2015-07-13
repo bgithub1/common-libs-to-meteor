@@ -1,7 +1,6 @@
 package com.billybyte.commonlibstometeor;
 
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,22 +9,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import misc.PosClDetailed;
 
+import com.billybyte.commoncollections.Tuple;
+import com.billybyte.dse.outputs.DerivativeReturn;
+import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
+import com.billybyte.dse.outputs.OptPriceDerSen;
 import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.marketdata.SecDefQueryAllMarkets;
 import com.billybyte.meteorjava.JsonNestedList;
-import com.billybyte.meteorjava.MeteorBaseListItem;
 import com.billybyte.meteorjava.MeteorColumnModel;
-import com.billybyte.meteorjava.MeteorListSendReceive;
-import com.billybyte.meteorjava.MeteorTableModel;
 import com.billybyte.meteorjava.MeteorValidator;
-import com.billybyte.meteorjava.staticmethods.Utils;
 
-public class Position extends MeteorBaseListItem {
-	private final String account;
-	private final String strategy;
+public class Position extends PositionBaseItem {
 	private final String type;
 	private final String exch;
 	private final String symbol;
@@ -35,22 +31,30 @@ public class Position extends MeteorBaseListItem {
 	private final Integer day;
 	private final String putCall;
 	private final BigDecimal strike;
+	private final BigDecimal price;
 	private final BigDecimal qty;
 
+	private static final DerivativeSensitivityTypeInterface optPriceDerSen = new OptPriceDerSen();
+	private static final String POSSEP = MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR;
 	
-	
-	private static final SecDefQueryAllMarkets sdQuery = 
+	// TODO - this needs to be removed and the sdQuery instance moved to the
+	//  the caller of the buildNested routines - which are static and
+	//  can easily accomidate the injection of the sdQuery object.
+	private  static final SecDefQueryAllMarkets sdQuery = 
 			new SecDefQueryAllMarkets();
 	
-
+	public Position(){
+		this(null,null,null,null,
+				null,null,null,null,
+				null,null,null,null,
+				null,null,null);
+	}
 	
 	public Position(String _id, String userId, String account, String strategy,
 			String type, String exch, String symbol, String curr, Integer year,
 			Integer month, Integer day, String putCall, BigDecimal strike,
-			BigDecimal qty) {
-		super(_id, userId);
-		this.account = account;
-		this.strategy = strategy;
+			BigDecimal price,BigDecimal qty) {
+		super(_id, userId,account,strategy);
 		this.type = type;
 		this.exch = exch;
 		this.symbol = symbol;
@@ -60,20 +64,12 @@ public class Position extends MeteorBaseListItem {
 		this.day = day;
 		this.putCall = putCall;
 		this.strike = strike;
+		this.price = price;
 		this.qty = qty;
 	}
 
 	
 	
-	public String getAccount() {
-		return account;
-	}
-
-
-
-	public String getStrategy() {
-		return strategy;
-	}
 
 
 
@@ -135,6 +131,11 @@ public class Position extends MeteorBaseListItem {
 		return qty;
 	}
 
+	
+	public BigDecimal getPrice() {
+		return price;
+	}
+
 	public String getShortName(){
 		String sep = MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR;
 		String pc = getPutCall();
@@ -154,45 +155,6 @@ public class Position extends MeteorBaseListItem {
 				(strike.compareTo(BigDecimal.ZERO)>0 ?  sep +getPutCall()+sep+getStrike() : "");
 	}
 
-	/**
-	 * Build an array of MeteorColumnModel to display in Meteor
-	 * @return MeteorColumnModel[]
-	 */
-	public static final MeteorColumnModel[] buildMetColModelArray(){
-
-		MeteorColumnModel accountCm = 
-				new MeteorColumnModel("account","account","account",null);
-		MeteorColumnModel strategyCm = 
-				new MeteorColumnModel("strategy","strategy","strategy",null);
-		MeteorColumnModel typeCm = 
-				new MeteorColumnModel("type","type","type",null);
-		MeteorColumnModel exchCm = 
-				new MeteorColumnModel("exch","exch","exch",null);
-		MeteorColumnModel symbolCm = 
-				new MeteorColumnModel("symbol","symbol","symbol",null);
-		MeteorColumnModel currCm = 
-				new MeteorColumnModel("curr","curr","curr",null);
-		MeteorColumnModel yearCm = 
-				new MeteorColumnModel("year","year","year",null);
-		MeteorColumnModel monthCm = 
-				new MeteorColumnModel("month","month","month",null);
-		MeteorColumnModel dayCm = 
-				new MeteorColumnModel("day","day","day",null);
-		MeteorColumnModel putCallCm = 
-				new MeteorColumnModel("putCall","putCall","putCall",null);
-		MeteorColumnModel strikeCm = 
-				new MeteorColumnModel("strike","strike","strike",null);
-		MeteorColumnModel qtyCm = 
-				new MeteorColumnModel("qty","qty","qty",new String[]{"qty"});
-	
-		MeteorColumnModel[] ret = {
-				accountCm,strategyCm,
-				typeCm,exchCm,symbolCm,currCm,
-				yearCm,monthCm,dayCm,putCallCm,strikeCm,
-				qtyCm
-		};
-		return ret;
-	}
 	
 	@SuppressWarnings("rawtypes")
 	public static Map buildNestedMapFromShortNames(Set<String> shortNameSet){
@@ -232,11 +194,14 @@ public class Position extends MeteorBaseListItem {
 				}
 				
 				if(sd.getContractDay()==null){
-					arr[6] = sd.getExpiryDay()+"";
+					if(sd.getContractMonth()==sd.getExpiryMonth()){
+						arr[6] = sd.getExpiryDay()+"";
+					}else{
+						arr[6] = "0";
+					}
 				}else{
 					arr[6] = sd.getContractDay().toString();
 				}
-//				arr[6] = "01";
 				arr[7] = "F";
 				arr[8] = "0";
 			}else if(type.compareTo("OPT")==0 || type.compareTo("FOP")==0  ){				
@@ -255,11 +220,14 @@ public class Position extends MeteorBaseListItem {
 				}
 				
 				if(sd.getContractDay()==null){
-					arr[6] = sd.getExpiryDay()+"";
+					if(sd.getContractMonth()==sd.getExpiryMonth()){
+						arr[6] = sd.getExpiryDay()+"";
+					}else{
+						arr[6] = "0";
+					}
 				}else{
 					arr[6] = sd.getContractDay().toString();
 				}
-//				arr[6] = "01";
 				arr[7] = snParts[5];
 				arr[8] = snParts[6]+ (snParts.length>7 ? "."+snParts[7] : "");
 			}
@@ -273,7 +241,7 @@ public class Position extends MeteorBaseListItem {
 		return nestedMap;
 	}
 
-	public static final MeteorValidator buildValidator(Set<String> shortNameSet){
+	public static final MeteorValidator buildPositionValidator(Set<String> shortNameSet){
 		@SuppressWarnings("rawtypes")
 		Map jnestMap = buildNestedMapFromShortNames(shortNameSet);
 		Class<?> classOfDataToBeValidated = Position.class;
@@ -284,7 +252,7 @@ public class Position extends MeteorBaseListItem {
 		Map<String, List<String>> independentFields = new HashMap<String, List<String>>();
 		
 		List<String> freeFields = Arrays.asList(new String[]{
-				"account","strategy","qty"
+				"account","strategy","price","qty"
 		});
 		
 		MeteorValidator ret = 
@@ -295,46 +263,72 @@ public class Position extends MeteorBaseListItem {
 		return ret;
 	}
 	
-	public static final MeteorTableModel buildPositionTableModel(){
-		MeteorTableModel tableModel = 
-				new MeteorTableModel(
-						Position.class,"Position",Position.class.getName(), 
-						Position.buildMetColModelArray());
-		return tableModel;
-	}
 
-	public static final List<Position> getPositionFromMeteor(
-			String meteorUrl,
-			Integer meteorPort,
-			String adminEmail,
-			String adminPass,
-			Map<String,String> selectorMap){
-		MeteorListSendReceive<Position> mlsr = null;
-		try {
-			mlsr =
-					new MeteorListSendReceive<Position>(100, 
-							Position.class, meteorUrl, meteorPort, 
-							adminEmail,adminPass,"", "", "tester");
-		} catch (URISyntaxException e) {
-			throw Utils.IllState(e);
-		}
 
-		List<Position> positionList = mlsr.getList(selectorMap);
-		return positionList;
-		
-	}
-
-	
+//	public String getUnderlying(){
+//		return getSymbol()+POSSEP+getType()+POSSEP+getExch();
+//	}
 
 	@Override
 	public String toString() {
-		return super.toString() + "," +account + ", " + strategy + ", " + type + ", " + exch + ", "
+		return super.toString() + ","+ ", " + type + ", " + exch + ", "
 				+ symbol + ", " + curr + ", " + year + ", " + month + ", "
 				+ day + ", " + putCall + ", " + strike + ", " + qty;
 	}
 
+	@Override
+	public MeteorColumnModel[] buildColumnModelArray() {
+		MeteorColumnModel accountCm = 
+				new MeteorColumnModel("account","account","account",null);
+		MeteorColumnModel strategyCm = 
+				new MeteorColumnModel("strategy","strategy","strategy",null);
+		MeteorColumnModel typeCm = 
+				new MeteorColumnModel("type","type","type",null);
+		MeteorColumnModel exchCm = 
+				new MeteorColumnModel("exch","exch","exch",null);
+		MeteorColumnModel symbolCm = 
+				new MeteorColumnModel("symbol","symbol","symbol",null);
+		MeteorColumnModel currCm = 
+				new MeteorColumnModel("curr","curr","curr",null);
+		MeteorColumnModel yearCm = 
+				new MeteorColumnModel("year","year","year",null);
+		MeteorColumnModel monthCm = 
+				new MeteorColumnModel("month","month","month",null);
+		MeteorColumnModel dayCm = 
+				new MeteorColumnModel("day","day","day",null);
+		MeteorColumnModel putCallCm = 
+				new MeteorColumnModel("putCall","putCall","putCall",null);
+		MeteorColumnModel strikeCm = 
+				new MeteorColumnModel("strike","strike","strike",null);
+		MeteorColumnModel priceCm = 
+				new MeteorColumnModel("price","price","price",new String[]{"price","qty"});
+		MeteorColumnModel qtyCm = 
+				new MeteorColumnModel("qty","qty","qty",new String[]{"qty"});
 	
-	
+		MeteorColumnModel[] ret = {
+				accountCm,strategyCm,
+				typeCm,exchCm,symbolCm,currCm,
+				yearCm,monthCm,dayCm,putCallCm,strikeCm,
+				priceCm,qtyCm
+		};
+		return ret;
+	}
+
+
+	@Override
+	public DerivativeSensitivityTypeInterface[] getDseSenseArray() {
+		return new DerivativeSensitivityTypeInterface[]{optPriceDerSen};
+	}
+
+	@Override
+	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+			Position p,
+			SecDef sd,
+			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
+			String underlying) {
+		return new Tuple<List<String>, M>(new ArrayList<String>(), (M)p);
+	}
+
 	
 	
 }
