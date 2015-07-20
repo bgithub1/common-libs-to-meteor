@@ -84,14 +84,36 @@
 		</constructor-arg>
 	</bean>
 
-
+<!-- rate queries using Treasury.gov site rather than static treasuryMap.xml file -->
+<!-- BE CAREFUL BECAUSE THE TRREASURY.GOV SITE IS OFTEN UNREPSONSIVE -->
+<!--  
 	<bean id="rateQuery" class="com.billybyte.dse.queries.TreasuryRateQueryFromTreasuryRateSingle">
 	</bean>
-						
 	
 	<bean id="divQuery" class="com.billybyte.dse.queries.TreasuryRateQueryFromTreasuryRateSingle">
 	</bean>
+-->
 
+<!-- rate queries using static treasuryMap.xml file -->
+	<bean id="rateQuery" class="com.billybyte.dse.queries.TreasuryRateQueryFromTreasuryRateSingle">
+		<constructor-arg>
+			<ref local="sdQuery"/> 
+		</constructor-arg>
+		<constructor-arg type="java.lang.String" value="treasuryMap.xml" />
+		<constructor-arg>
+			<null/>
+		</constructor-arg>
+	</bean>
+
+	<bean id="divQuery" class="com.billybyte.dse.queries.TreasuryRateQueryFromTreasuryRateSingle">
+		<constructor-arg>
+			<ref local="sdQuery"/> 
+		</constructor-arg>
+		<constructor-arg type="java.lang.String" value="treasuryMap.xml" />
+		<constructor-arg>
+			<null/>
+		</constructor-arg>
+	</bean>
 
 	<bean id="dteQuery" class="com.billybyte.dse.queries.DteDseInputQuery" > 
 		<constructor-arg>

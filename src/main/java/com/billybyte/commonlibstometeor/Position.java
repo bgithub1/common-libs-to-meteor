@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 
 import com.billybyte.commoncollections.Tuple;
+import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 import com.billybyte.dse.outputs.OptPriceDerSen;
@@ -218,7 +219,10 @@ public class Position extends PositionBaseItem {
 					sd = sdQuery.get(sn, 1, TimeUnit.SECONDS);
 					sdMap.put(sdMapKey, sd);
 				}
-				
+				if(sd==null){
+					Utils.prtObErrMess(Position.class,"null SecDef for "+sn);
+					continue;
+				}
 				if(sd.getContractDay()==null){
 					if(sd.getContractMonth()==sd.getExpiryMonth()){
 						arr[6] = sd.getExpiryDay()+"";
