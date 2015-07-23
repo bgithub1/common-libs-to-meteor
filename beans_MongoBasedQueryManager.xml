@@ -142,6 +142,36 @@
 		</constructor-arg>
 	</bean> 
 
+	<bean id="mcwSpanHist" class="com.billybyte.mongo.MongoCollectionWrapper">
+		<constructor-arg>
+			<ref local="mongoIp"/>
+		</constructor-arg>
+		<constructor-arg type="java.lang.Integer" value="27022" />
+		<constructor-arg type="java.lang.String" value="spanHistDb" />
+		<constructor-arg type="java.lang.String" value="spanHistColl" />
+	</bean>
+	
+	<bean id="mcwCorrel" class="com.billybyte.mongo.MongoCollectionWrapper">
+		<constructor-arg>
+			<ref local="mongoIp"/>
+		</constructor-arg>
+		<constructor-arg type="java.lang.Integer" value="27017" />
+		<constructor-arg type="java.lang.String" value="correlDb" />
+		<constructor-arg type="java.lang.String" value="correlColl" />
+	</bean>
+	
+
+	<bean id="corrQuery" class="com.billybyte.dse.queries.CorrelationDseInputQuery">
+		<constructor-arg>
+			<ref local="mcwSpanHist"/>
+		</constructor-arg>
+		<constructor-arg>
+			<ref local="mcwCorrel"/>
+		</constructor-arg>
+	
+	</bean>
+
+<!--  
 	<bean id="corrQuery" class="com.billybyte.dse.queries.CorrelationSetQueryFromMongoCmcDiffMap">
 		<constructor-arg>
 			<ref local="mongoIp"/>
@@ -150,6 +180,7 @@
 		<constructor-arg type="java.lang.String" value="stkCorrXml" />
 		<constructor-arg type="java.lang.String" value="correls" />
 	</bean>
+-->
   
 	
 	<bean id="corrPairQuery" class="com.billybyte.dse.queries.CorrelationSetQueryFromMongoCmcDiffMapUsingPairStrings">

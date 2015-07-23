@@ -1,0 +1,30 @@
+<com.billybyte.meteorjava.MeteorTableModel>
+  <__id>com.billybyte.commonlibstometeor.UnitVar</__id>
+  <displayTableName>UnitVar</displayTableName>
+  <collectionName>com.billybyte.commonlibstometeor.UnitVar</collectionName>
+  <tableColumnClassArr>
+    <com.billybyte.meteorjava.MeteorColumnModel>
+      <colName>account</colName>
+      <nameInDoc>account</nameInDoc>
+      <displayName>account</displayName>
+    </com.billybyte.meteorjava.MeteorColumnModel>
+    <com.billybyte.meteorjava.MeteorColumnModel>
+      <colName>strategy</colName>
+      <nameInDoc>strategy</nameInDoc>
+      <displayName>strategy</displayName>
+    </com.billybyte.meteorjava.MeteorColumnModel>
+    <com.billybyte.meteorjava.MeteorColumnModel>
+      <colName>underlying</colName>
+      <nameInDoc>underlying</nameInDoc>
+      <displayName>underlying</displayName>
+    </com.billybyte.meteorjava.MeteorColumnModel>
+    <com.billybyte.meteorjava.MeteorColumnModel>
+      <colName>var</colName>
+      <nameInDoc>var</nameInDoc>
+      <displayName>var</displayName>
+      <totallingDef>
+        <string>var</string>
+      </totallingDef>
+    </com.billybyte.meteorjava.MeteorColumnModel>
+  </tableColumnClassArr>
+</com.billybyte.meteorjava.MeteorTableModel>

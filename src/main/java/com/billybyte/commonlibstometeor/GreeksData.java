@@ -13,16 +13,17 @@ import com.billybyte.dse.outputs.GammaDerSen;
 import com.billybyte.dse.outputs.RhoDerSen;
 import com.billybyte.dse.outputs.ThetaDerSen;
 import com.billybyte.dse.outputs.VegaDerSen;
+import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.meteorjava.MeteorColumnModel;
 
 public class GreeksData extends PositionBaseItem{
-	private static final DerivativeSensitivityTypeInterface deltaDerSen = new DeltaDerSen();
-	private static final DerivativeSensitivityTypeInterface gammaDerSen = new GammaDerSen();
-	private static final DerivativeSensitivityTypeInterface vegaDerSen = new VegaDerSen();
-	private static final DerivativeSensitivityTypeInterface thetaDerSen = new ThetaDerSen();
-	private static final DerivativeSensitivityTypeInterface rhoDerSen = new RhoDerSen();
-	private static final 		Double badRet = -1111111.0;
+	static final DerivativeSensitivityTypeInterface deltaDerSen = new DeltaDerSen();
+	static final DerivativeSensitivityTypeInterface gammaDerSen = new GammaDerSen();
+	static final DerivativeSensitivityTypeInterface vegaDerSen = new VegaDerSen();
+	static final DerivativeSensitivityTypeInterface thetaDerSen = new ThetaDerSen();
+	static final DerivativeSensitivityTypeInterface rhoDerSen = new RhoDerSen();
+	static final 		Double badRet = -1111111.0;
 
 
 	private final String type;
@@ -159,8 +160,6 @@ public class GreeksData extends PositionBaseItem{
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
 			String underlying) {
 		
-//		int precision = sd.getExchangePrecision()+2;
-//		double multiplier = Math.pow(10,precision);
 		List<String> problems = new ArrayList<String>();
 		String type = sd.getSymbolType().toString();
 		String exch = sd.getExchange().toString();
@@ -188,7 +187,15 @@ public class GreeksData extends PositionBaseItem{
 		vega = vega * qty;
 		theta = theta * qty;
 		rho = rho * qty;
+
+		String under=underlying;
+		// only pass symbol
+		if(under==null){
+			under="";
+		}
 		
+		under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
+
 		M ret = 
 				(M)new GreeksData(_id, userId, account, strategy, type, 
 						exch,underlying, symbol, curr, 

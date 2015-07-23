@@ -9,6 +9,7 @@ import com.billybyte.commoncollections.Tuple;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 import com.billybyte.dse.outputs.OptPriceDerSen;
+import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.meteorjava.MeteorColumnModel;
 
@@ -104,6 +105,7 @@ public class ProfitAndLoss extends Position {
 		return buildProfitAndLossColModelArray();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
 			Position p,
@@ -122,12 +124,21 @@ public class ProfitAndLoss extends Position {
 			price = BigDecimal.ZERO;
 		}
 		BigDecimal pl = new BigDecimal(drArr[0].getValue().doubleValue()).subtract(price);
+		pl = pl.multiply(p.getQty());
+
+		String under=underlying;
+		// only pass symbol
+		if(under==null){
+			under="";
+		}
+		
+		under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
 		
 		m = (M) new ProfitAndLoss(p.get_id(), p.getUserId(), 
 				p.getAccount(), p.getStrategy(), p.getType(), 
 				p.getExch(), p.getSymbol(), p.getCurr(), p.getYear(),
 				p.getMonth(), p.getDay(), p.getPutCall(), p.getStrike(), 
-				p.getPrice(),p.getQty(), pl,underlying);
+				p.getPrice(),p.getQty(), pl,under);
 		
 		return new Tuple<List<String>, M>(problems, m);
 	}

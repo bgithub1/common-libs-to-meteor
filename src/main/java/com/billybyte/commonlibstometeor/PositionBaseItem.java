@@ -35,13 +35,6 @@ public abstract class PositionBaseItem extends MeteorBaseListItem{
 	 */
 	public abstract <M extends PositionBaseItem> Tuple<List<String>,M> positionBasedItemFromDerivativeReturn(
 			Position p,SecDef sd, Map<DerivativeSensitivityTypeInterface,DerivativeReturn[]> drSenseMap, String underlying);
-//	public abstract Tuple<List<String>,PositionBaseItem> pbiFromDerivativeReturn(
-//			Position p,SecDef sd, Map<DerivativeSensitivityTypeInterface,DerivativeReturn[]> drSenseMap);
-	
-//	public abstract Map<String,Tuple<List<String>, List<PositionBaseItem>>> processDsePerUserId(
-//			List<Position> positionFromMeteor,
-//			DerivativeSetEngine dse,
-//			Double errorValueToReturn);
 	
 	private final String account;
 	private final String strategy;

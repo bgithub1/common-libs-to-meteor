@@ -1,6 +1,8 @@
 package com.billybyte.commonlibstometeor.runs.apps.greeks;
 
 
+import java.util.List;
+
 import com.billybyte.commonlibstometeor.GreeksData;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
 import com.billybyte.commonlibstometeor.runs.apps.ProcessMeteorPositionChanges;
@@ -20,6 +22,13 @@ public class RunGreeksFromMeteorPositionChanges {
 				String meteorUrl, Integer meteorPort, String adminEmail,
 				String adminPass, Class<GreeksData> classOfM) {
 			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM);
+		}
+
+		@Override
+		public List<GreeksData> aggregateMrecs(
+				List<GreeksData> mRecPerPositionList) {
+			/// nothing to do
+			return mRecPerPositionList;
 		}
 	
 	}

@@ -37,14 +37,17 @@ import com.billybyte.meteorjava.staticmethods.Utils;
  * @author bperlman1
  *
  */
-public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
+public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
+	
+	public abstract List<M> aggregateMrecs(List<M> mRecPerPositionList);
+
 	private final DerivativeSetEngine dse;
 	private final String meteorUrl;
 	private final Integer meteorPort;
 	private final String adminEmail;
 	private final String adminPass;
 	private final Class<M> classOfM;
-	private final UnderlyingShortNameFromOptionShortNameQuery underlingQuery ;
+	protected final UnderlyingShortNameFromOptionShortNameQuery underlingQuery ;
 	private final MeteorListSendReceive<TableChangedByUser> mlsrOfTableChangedByUser;
 	private final MeteorListSendReceive<M> mlsrOfM;
 
@@ -136,21 +139,6 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 		
 		// Create a MeteorListSendReceive instance to control communication with Meteor
 		//  You'll reuse this connection object to get other kinds of objects besides TableChangedByUser objects
-//		MeteorListSendReceive<TableChangedByUser> mlsrOfTableChangedByUser = null;
-//		try {
-//			mlsrOfTableChangedByUser = new MeteorListSendReceive<TableChangedByUser>(100, 
-//							TableChangedByUser.class, 
-//							meteorUrl, meteorPort, 
-//							adminEmail,adminPass,"", "", "tester");
-//			
-//		} catch (URISyntaxException e) {
-//			throw Utils.IllState(e);
-//		}
-		
-//		// Create a sub-mlsr to use to get and put Lists of java instances that extend PositionBaseItem, by reusing the mlsr
-//		//   for TableChangedByUser changes.
-//		final MeteorListSendReceive<M> mlsrOfM = 
-//				new MeteorListSendReceive<M>(mlsrOfTableChangedByUser, classOfM);
 		// Only accept changes for the Position.class collection. 
 		Set<String> collectionsToWatchFor = 
 				new HashSet<String>(Arrays.asList(new String[]{Position.class.getCanonicalName()}));
@@ -162,7 +150,6 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 				mlsrOfTableChangedByUser.subscribeToTableChangedByUser(-1,collectionsToWatchFor);
 		// Create a new anonymous Runnable instance that responds to List<Position> that the mlsr puts
 		//   on blockingQueue
-//		Runnable r = new ProcessBlockingQueueRunnable(blockingQueue, mlsrOfM);
 		Runnable r = new ProcessBlockingQueueRunnable(blockingQueue);
 		
 		// startup the blockingqueue taker
@@ -219,7 +206,6 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 						}
 						Double errorValueToReturn = -11111111.0;
 						// Create records of type M and send them to Meteor clients that had a position change.
-//						processMrecs(mlsrMrecData,positionList,  errorValueToReturn);
 						processMrecs(positionList,  errorValueToReturn);
 					}
 				} catch (InterruptedException e) {						
@@ -230,65 +216,11 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 			
 		}
 		
-//		/**
-//		 * Process the List<M> that you fetch from Meteor, for specific userId's.
-//		 * @param mlsr
-//		 * @param positionFromMeteor
-//		 * @param errorValueToReturn
-//		 */
-//		public void processMrecs(
-//				MeteorListSendReceive<M> mlsr,
-//				List<Position> positionFromMeteor,
-//				Double errorValueToReturn
-//				){
-//			
-//			QueryInterface<String, SecDef> sdQuery = dse.getSdQuery();
-//			Map<String,SecDef> sdMap = new HashMap<String, SecDef>();
-//			Map<String, List<Position>> userIdToPosition = new HashMap<String, List<Position>>();
-//			// Build map of userId to position list
-//			for(Position p : positionFromMeteor){
-//				String userId = p.getUserId();
-//				String sn = p.getShortName();
-//				if(!sdMap.containsKey(sn)){
-//					SecDef sd = sdQuery.get(sn, 1, TimeUnit.SECONDS);
-//					if(sd==null){
-//						Utils.prtObErrMess(ProcessMeteorPositionChanges.class, "cannot get SecDef for shortName: " + sn);
-//					}else{
-//						sdMap.put(sn, sd);
-//					}
-//				}
-//				
-//				List<Position> positionsForThisUser = 
-//						userIdToPosition.get(userId);
-//				if(positionsForThisUser==null){
-//					positionsForThisUser = new ArrayList<Position>();
-//					userIdToPosition.put(userId,positionsForThisUser);
-//				}
-//				positionsForThisUser.add(p);
-//			}
-//			//processSensitivitiesPerUserId
-//			Map<String,Tuple<List<String>, List<M>>> userIdToMrecs = 
-//					processSensitivitiesPerUserId(positionFromMeteor, errorValueToReturn);
-//			
-//			// Create an instance of type M for each Position object for each user
-//			for(String userId : userIdToMrecs.keySet()){
-//				List<M> mList = userIdToMrecs.get(userId).getT2_instance();
-//				List<String> problems = userIdToMrecs.get(userId).getT1_instance();
-//				// send PositionBaseItem extended Objects for this userId
-//				sendMrecsToMeteor(mlsr,mList);
-//				// print out problems
-//				for(String problem : problems){
-//					Utils.prtObErrMess(ProcessMeteorPositionChanges.class, problem);	
-//				}
-//				
-//			}
-//		}
 		
 	}
 	
 	
 	public void processMrecs(
-//			MeteorListSendReceive<M> mlsr,
 			List<Position> positionFromMeteor,
 			Double errorValueToReturn
 			){
@@ -325,9 +257,10 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 		for(String userId : userIdToMrecs.keySet()){
 			List<M> mList = userIdToMrecs.get(userId).getT2_instance();
 			List<String> problems = userIdToMrecs.get(userId).getT1_instance();
+			List<M> mListAggregated = aggregateMrecs(mList);
 			// send PositionBaseItem extended Objects for this userId
-//			sendMrecsToMeteor(mlsr,mList);
-			sendMrecsToMeteor(userId,mlsrOfM,mList);
+//			sendMrecsToMeteor(userId,mlsrOfM,mList);
+			sendMrecsToMeteor(userId,mlsrOfM,mListAggregated);
 			// print out problems
 			for(String problem : problems){
 				Utils.prtObErrMess(ProcessMeteorPositionChanges.class, problem);	
@@ -379,7 +312,7 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 	 * @param errorValueToReturn - a value to use for each sensitivity that can't be processed
 	 * @return Map<String,Tuple<List<String>, List<M>>> 
 	 */
-	private Map<String,Tuple<List<String>, List<M>>> processSensitivitiesPerUserId(
+	public Map<String,Tuple<List<String>, List<M>>> processSensitivitiesPerUserId(
 			List<Position> positionFromMeteor,
 			Double errorValueToReturn){
 		
@@ -443,12 +376,12 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 				// !!!!!!!!!!!!!!!!!!!! IMPORTANT - HERE IS THE MAIN CALL THAT CREATES INSTANCES OF TYPE <M> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				// Get underlying
 				String under = underlingQuery.get(shortName, 1, TimeUnit.SECONDS);
-				// only pass symbol
-				if(under==null){
-					under="";
-				}
-				
-				under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
+//				// only pass symbol
+//				if(under==null){
+//					under="";
+//				}
+//				
+//				under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
 				Tuple<List<String>,M> gdTuple = newby.positionBasedItemFromDerivativeReturn(p, sd, drSenseMap,under);
 				problems.addAll(gdTuple.getT1_instance());
 				senseList.add(gdTuple.getT2_instance());
@@ -460,5 +393,6 @@ public  class ProcessMeteorPositionChanges<M extends PositionBaseItem> {
 		}
 		return ret;
 	}
+	
 	
 }

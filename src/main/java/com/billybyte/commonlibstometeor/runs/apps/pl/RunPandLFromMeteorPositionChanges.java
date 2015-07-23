@@ -2,6 +2,8 @@ package com.billybyte.commonlibstometeor.runs.apps.pl;
 
 
 //import com.billybyte.commonlibstometeor.ProfitAndLoss;
+import java.util.List;
+
 import com.billybyte.commonlibstometeor.ProfitAndLoss;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
 import com.billybyte.commonlibstometeor.runs.apps.ProcessMeteorPositionChanges;
@@ -21,7 +23,13 @@ public class RunPandLFromMeteorPositionChanges {
 				String meteorUrl, Integer meteorPort, String adminEmail,
 				String adminPass, Class<ProfitAndLoss> classOfM) {
 			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM);
-			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public List<ProfitAndLoss> aggregateMrecs(
+				List<ProfitAndLoss> mRecPerPositionList) {
+			// nothing to do
+			return mRecPerPositionList;
 		}
 	
 	}

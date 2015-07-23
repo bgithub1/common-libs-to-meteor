@@ -1,10 +1,10 @@
-package com.billybyte.commonlibstometeor.runs.apps.greeks;
+package com.billybyte.commonlibstometeor.runs.apps.pl;
 
 import java.net.URISyntaxException;
 import java.util.List;
 
-import com.billybyte.commonlibstometeor.GreeksData;
 import com.billybyte.commonlibstometeor.Position;
+import com.billybyte.commonlibstometeor.ProfitAndLoss;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
 import com.billybyte.commonlibstometeor.runs.apps.ProcessMeteorPositionChanges;
 import com.billybyte.commonstaticmethods.CollectionsStaticMethods;
@@ -13,22 +13,21 @@ import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.meteorjava.MeteorListSendReceive;
 import com.billybyte.meteorjava.staticmethods.Utils;
 
-public class RunGreeksToMeteorLoop {
-	private static class ProcessGreeksFromMeteorPositionChanges extends ProcessMeteorPositionChanges<GreeksData>{
+public class RunPandLToMeteorLoop {
+	private static class ProcessPandLFromMeteorPositionChanges extends ProcessMeteorPositionChanges<ProfitAndLoss>{
 
-		public ProcessGreeksFromMeteorPositionChanges(DerivativeSetEngine dse,
+		public ProcessPandLFromMeteorPositionChanges(DerivativeSetEngine dse,
 				String meteorUrl, Integer meteorPort, String adminEmail,
 				String adminPass) {
-			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, GreeksData.class);
+			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, ProfitAndLoss.class);
 		}
-
 		@Override
-		public List<GreeksData> aggregateMrecs(
-				List<GreeksData> mRecPerPositionList) {
+		public List<ProfitAndLoss> aggregateMrecs(
+				List<ProfitAndLoss> mRecPerPositionList) {
 			// nothing to do
 			return mRecPerPositionList;
 		}
-	
+
 	}
 
 	public static void main(String[] args) {
@@ -57,8 +56,8 @@ public class RunGreeksToMeteorLoop {
 			throw Utils.IllState(e);
 		}
 		
-		ProcessGreeksFromMeteorPositionChanges processGreeks = 
-				new ProcessGreeksFromMeteorPositionChanges(dse, ab.meteorUrl, ab.meteorPort, 
+		ProcessPandLFromMeteorPositionChanges processGreeks = 
+				new ProcessPandLFromMeteorPositionChanges(dse, ab.meteorUrl, ab.meteorPort, 
 						ab.adminEmail,ab.adminPass);
 		
 		boolean keepGoing = true;
