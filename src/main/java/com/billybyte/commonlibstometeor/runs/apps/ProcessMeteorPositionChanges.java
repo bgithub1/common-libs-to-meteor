@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +24,7 @@ import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.marketdata.futures.UnderlyingShortNameFromOptionShortNameQuery;
+import com.billybyte.meteorjava.MeteorListCallback;
 import com.billybyte.meteorjava.MeteorListSendReceive;
 import com.billybyte.meteorjava.TableChangedByUser;
 import com.billybyte.meteorjava.staticmethods.Utils;
@@ -50,7 +52,7 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	protected final UnderlyingShortNameFromOptionShortNameQuery underlingQuery ;
 	private final MeteorListSendReceive<TableChangedByUser> mlsrOfTableChangedByUser;
 	private final MeteorListSendReceive<M> mlsrOfM;
-
+	private final MeteorListSendReceive<Position> mlsrForCollectionRead;
 	
 	
 	/**
@@ -83,7 +85,10 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 			throw Utils.IllState(e);
 		}
 		this.mlsrOfM = 
-				new MeteorListSendReceive<M>(mlsrOfTableChangedByUser, classOfM);		
+				new MeteorListSendReceive<M>(mlsrOfTableChangedByUser, classOfM);	
+		this.mlsrForCollectionRead = 
+				new MeteorListSendReceive<Position>(mlsrOfTableChangedByUser,Position.class);
+
 	
 	}
 	
@@ -135,25 +140,28 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	 *   like greeks, p&L, unit VaR, etc.
 	 */
 	public  void process() {
-		
-		
-		// Create a MeteorListSendReceive instance to control communication with Meteor
-		//  You'll reuse this connection object to get other kinds of objects besides TableChangedByUser objects
-		// Only accept changes for the Position.class collection. 
-		Set<String> collectionsToWatchFor = 
-				new HashSet<String>(Arrays.asList(new String[]{Position.class.getCanonicalName()}));
-		// Get a blocking queue from the mlsr that you can use in the new Runnable and new Thread that
-		//  you create below.  This method will also subscribe to changes in the TableChangeByUser collection
-		//  so that you can track changes in any collection on the client side, when the client adds or deletes
-		//  records.
-		final BlockingQueue<List<?>> blockingQueue = 
-				mlsrOfTableChangedByUser.subscribeToTableChangedByUser(-1,collectionsToWatchFor);
-		// Create a new anonymous Runnable instance that responds to List<Position> that the mlsr puts
-		//   on blockingQueue
-		Runnable r = new ProcessBlockingQueueRunnable(blockingQueue);
-		
-		// startup the blockingqueue taker
-		new Thread(r).run();
+		process2();
+//		
+//		// Create a MeteorListSendReceive instance to control communication with Meteor
+//		//  You'll reuse this connection object to get other kinds of objects besides TableChangedByUser objects
+//		// Only accept changes for the Position.class collection. 
+//		Set<String> collectionsToWatchFor = 
+//				new HashSet<String>(Arrays.asList(new String[]{
+//						Position.class.getCanonicalName(),
+////						classOfM.getCanonicalName()
+//						}));
+//		// Get a blocking queue from the mlsr that you can use in the new Runnable and new Thread that
+//		//  you create below.  This method will also subscribe to changes in the TableChangeByUser collection
+//		//  so that you can track changes in any collection on the client side, when the client adds or deletes
+//		//  records.
+//		final BlockingQueue<List<?>> blockingQueue = 
+//				mlsrOfTableChangedByUser.subscribeToTableChangedByUser(-1,collectionsToWatchFor);
+//		// Create a new anonymous Runnable instance that responds to List<Position> that the mlsr puts
+//		//   on blockingQueue
+//		Runnable r = new ProcessBlockingQueueRunnable(blockingQueue);
+//		
+//		// startup the blockingqueue taker
+//		new Thread(r).run();
 		
 	}
 	
@@ -170,14 +178,11 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	 */
 	private class ProcessBlockingQueueRunnable implements Runnable{
 		private final BlockingQueue<List<?>> blockingQueue;
-//		private final MeteorListSendReceive<M> mlsrMrecData;
 		private ProcessBlockingQueueRunnable(
 				BlockingQueue<List<?>> blockingQueue
-//				MeteorListSendReceive<M> mlsrMrecData
 				) {
 			super();
 			this.blockingQueue = blockingQueue;
-//			this.mlsrMrecData = mlsrMrecData;
 			
 		}
 
@@ -219,6 +224,102 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		
 	}
 	
+	
+	public void process2(){
+		// create a Callback to capture TableChangedByUser changes
+		MeteorListCallback<TableChangedByUser> tableChangedByUserCallback = 
+				new MeteorListCallback<TableChangedByUser>() {
+					@Override
+					public void onMessage(String messageType, String id,TableChangedByUser convertedMessage) {
+						Utils.prtObMess(this.getClass(), "TableChangedByUser callback: "+messageType);
+						Utils.prtObMess(this.getClass(), "recId: "+id+", record: " + (convertedMessage!=null ? convertedMessage.toString(): "null message"));
+						if(messageType.compareTo("added")==0){
+							String[] userIdAndCollection = id.split("_");
+							String userId = userIdAndCollection[0];
+							String collection = userIdAndCollection[1];
+							if(collection==null)return;
+							boolean check = collection.compareTo(Position.class.getCanonicalName())==0 || collection.compareTo(classOfM.getCanonicalName())==0;
+							if(!check){
+								return;
+							}
+							
+							// Now get the List<?> of records of type clazz from Meteor that
+							//  has been changed by a Meteor client.
+							Map<String, String> selector = new HashMap<String, String>();
+							selector.put("userId", userId);
+							// Do the get here.
+							List<Position> positionList = 
+									mlsrForCollectionRead.getList(selector);
+							// Put the list on the blocking queue that we originally sent back to
+							//  the caller of subscribeToTableChangedByUser when we first started above (outside of this runnable).
+							//  The caller should be waiting on this blockingqueue (take) for these List<?> items.
+							Double errorValueToReturn = -11111111.0;
+							// Create records of type M and send them to Meteor clients that had a position change.
+							processMrecs(positionList,  errorValueToReturn);
+						}
+					}
+		};
+		// create a BlockingQueue<List<Position>>
+		mlsrOfTableChangedByUser.subscribeToListDataWithCallback(tableChangedByUserCallback);
+		final BlockingQueue<List<Position>> ret = new ArrayBlockingQueue<List<Position>>(100);
+		Runnable r  = new ProcessBlockingQueueRunnable2(ret);
+		// startup the blockingqueue taker
+		new Thread(r).run();
+
+		// subscribe to the callback
+
+	}
+	
+	
+	/**
+	 * ProcessBlockingQueueRunnable will loop in it's run method, waiting on
+	 *   List<Position> lists to appear on its BlockingQueue<List<?>>.
+	 *   It will do some initial checking of the list, and then call the
+	 *   method processMrecs to process all of the Position records that it
+	 *   receives from the blockingQueue.  It is possible to receive
+	 *   other types of records besides Position records from the blocking queue,
+	 *   so, it is necessary to make the blocking queue of type List<?>  
+	 * @author bperlman1
+	 *
+	 */
+	private class ProcessBlockingQueueRunnable2 implements Runnable{
+		private final BlockingQueue<List<Position>> blockingQueue;
+		private ProcessBlockingQueueRunnable2(
+				BlockingQueue<List<Position>> blockingQueue
+				) {
+			super();
+			this.blockingQueue = blockingQueue;
+			
+		}
+
+
+
+		@Override
+		public void run() {
+			boolean keepGoing = true;
+			// Loop until there's an error.  Remember that the loop is done on another thread.
+			while(keepGoing){
+				try {
+					List<Position> positionList = blockingQueue.take();
+					// Make sure you got data.
+					if(positionList.size()<1){
+						continue;
+					}
+					// Get the class of the data.
+						Double errorValueToReturn = -11111111.0;
+						// Create records of type M and send them to Meteor clients that had a position change.
+						processMrecs(positionList,  errorValueToReturn);
+				}catch (InterruptedException e) {						
+					e.printStackTrace();
+					keepGoing=false;
+				}
+			}
+			
+		}
+		
+		
+	}
+		
 	
 	public void processMrecs(
 			List<Position> positionFromMeteor,
