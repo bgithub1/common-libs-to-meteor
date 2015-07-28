@@ -110,7 +110,7 @@ public class ProfitAndLoss extends Position {
 	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
-			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,String underlying) {
+			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,List<SecDef> underlyingSds) {
 		List<String> problems = new ArrayList<String>();
 		DerivativeReturn[] drArr= drSenseMap.get(optPriceDerSen);
 		M m = null;

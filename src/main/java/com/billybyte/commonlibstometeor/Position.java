@@ -36,11 +36,11 @@ public class Position extends PositionBaseItem {
 	private final BigDecimal qty;
 
 	private static final DerivativeSensitivityTypeInterface optPriceDerSen = new OptPriceDerSen();
-	private static final String POSSEP = MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR;
+//	private static final String POSSEP = MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR;
 	
 	// TODO - this needs to be removed and the sdQuery instance moved to the
 	//  the caller of the buildNested routines - which are static and
-	//  can easily accomidate the injection of the sdQuery object.
+	//  can easily accommodate the injection of the sdQuery object.
 	private  static final SecDefQueryAllMarkets sdQuery = 
 			new SecDefQueryAllMarkets();
 	
@@ -140,20 +140,19 @@ public class Position extends PositionBaseItem {
 	public String getShortName(){
 		String sep = MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR;
 		String pc = getPutCall();
-		BigDecimal strike = getStrike();
-		if(pc!=null){
-			if(pc.compareTo("F")==0 || pc.compareTo("S")==0) {
-				pc=null;
-				strike = BigDecimal.ZERO;
-			}
-			
-		}
+//		BigDecimal strike = getStrike();
+//		if(pc!=null){
+//			if(pc.compareTo("F")==0 || pc.compareTo("S")==0) {
+//				pc=null;
+//				strike = BigDecimal.ZERO;
+//			}			
+//		}
 		return getSymbol() + sep +
 				getType() + sep +
 				getExch() + sep +
 				getCurr() + sep +
 				(getYear()*100+getMonth()) +
-				(strike.compareTo(BigDecimal.ZERO)>0 ?  sep +getPutCall()+sep+getStrike() : "");
+				((pc.compareTo("C")==00 || pc.compareTo("P")==0) ?  sep +pc+sep+getStrike() : "");
 	}
 
 	
@@ -329,7 +328,7 @@ public class Position extends PositionBaseItem {
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
-			String underlying) {
+			List<SecDef> underlyingSds) {
 		return new Tuple<List<String>, M>(new ArrayList<String>(), (M)p);
 	}
 

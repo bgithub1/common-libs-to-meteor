@@ -158,9 +158,10 @@ public class GreeksData extends PositionBaseItem{
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
-			String underlying) {
+			List<SecDef> underlyingSds) {
 		
 		List<String> problems = new ArrayList<String>();
+		
 		String type = sd.getSymbolType().toString();
 		String exch = sd.getExchange().toString();
 		String symbol = sd.getSymbol();
@@ -188,7 +189,7 @@ public class GreeksData extends PositionBaseItem{
 		theta = theta * qty;
 		rho = rho * qty;
 
-		String under=underlying;
+		String under=underlyingSds.get(0).getShortName();
 		// only pass symbol
 		if(under==null){
 			under="";
@@ -198,7 +199,7 @@ public class GreeksData extends PositionBaseItem{
 
 		M ret = 
 				(M)new GreeksData(_id, userId, account, strategy, type, 
-						exch,underlying, symbol, curr, 
+						exch,under, symbol, curr, 
 						year, month, day, putCall, strike, 
 						delta, gamma, vega, theta, rho);
 		
@@ -210,7 +211,10 @@ public class GreeksData extends PositionBaseItem{
 		DerivativeReturn[] drArr = drSenseMap.get(sense);
 		Double senseValue=badRet;
 		if(drArr!=null && drArr.length>0 && drArr[0].isValidReturn()){
-			senseValue = drArr[0].getValue().doubleValue();
+			senseValue = 0.0;
+			for(DerivativeReturn dr : drArr){
+				senseValue += dr.getValue().doubleValue();
+			}
 		}
 		return senseValue;
 	}

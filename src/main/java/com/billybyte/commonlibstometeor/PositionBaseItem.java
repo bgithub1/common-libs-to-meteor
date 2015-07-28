@@ -34,7 +34,7 @@ public abstract class PositionBaseItem extends MeteorBaseListItem{
 	 * @return Map<DerivativeSensitivityTypeInterface,DerivativeReturn[]>  map of sensitivity to DerivativeReturn array.
 	 */
 	public abstract <M extends PositionBaseItem> Tuple<List<String>,M> positionBasedItemFromDerivativeReturn(
-			Position p,SecDef sd, Map<DerivativeSensitivityTypeInterface,DerivativeReturn[]> drSenseMap, String underlying);
+			Position p,SecDef sd, Map<DerivativeSensitivityTypeInterface,DerivativeReturn[]> drSenseMap, List<SecDef> underlyingSds);
 	
 	private final String account;
 	private final String strategy;

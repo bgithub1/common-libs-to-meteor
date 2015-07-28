@@ -163,7 +163,7 @@ public class GreekInputsData extends PositionBaseItem{
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
-			String underlying) {
+			List<SecDef> underlyingSds) {
 		
 		return null;
 		

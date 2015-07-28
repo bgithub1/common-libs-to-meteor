@@ -254,8 +254,12 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 							//  the caller of subscribeToTableChangedByUser when we first started above (outside of this runnable).
 							//  The caller should be waiting on this blockingqueue (take) for these List<?> items.
 							Double errorValueToReturn = -11111111.0;
-							// Create records of type M and send them to Meteor clients that had a position change.
-							processMrecs(positionList,  errorValueToReturn);
+							try {
+								// Create records of type M and send them to Meteor clients that had a position change.
+								processMrecs(positionList, errorValueToReturn);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					}
 		};
@@ -476,14 +480,20 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 				
 				// !!!!!!!!!!!!!!!!!!!! IMPORTANT - HERE IS THE MAIN CALL THAT CREATES INSTANCES OF TYPE <M> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				// Get underlying
+				List<SecDef> underSds = dse.getQueryManager().getUnderlyingSecDefs(shortName, 1, TimeUnit.SECONDS);
 				String under = underlingQuery.get(shortName, 1, TimeUnit.SECONDS);
+				String under2 = underSds.get(0).getShortName();
+				if(under == null || under2.compareTo(under)!=0){
+					Utils.prtObErrMess(this.getClass(), "underlying form dse : " + under2 + " does not match under from UnderlyingShortNameFromOptionShortNameQuery : " + under);
+				}
+				
 //				// only pass symbol
 //				if(under==null){
 //					under="";
 //				}
 //				
 //				under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
-				Tuple<List<String>,M> gdTuple = newby.positionBasedItemFromDerivativeReturn(p, sd, drSenseMap,under);
+				Tuple<List<String>,M> gdTuple = newby.positionBasedItemFromDerivativeReturn(p, sd, drSenseMap,underSds);
 				problems.addAll(gdTuple.getT1_instance());
 				senseList.add(gdTuple.getT2_instance());
 			}

@@ -76,7 +76,7 @@ public class UnitVar extends PositionBaseItem {
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
-			String underlying) {
+			List<SecDef> underlyingSds) {
 //		Double delta = getSense(drSenseMap, deltaDerSen);
 //		double qty = p.getQty().doubleValue();
 //		
