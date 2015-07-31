@@ -1,11 +1,9 @@
 package com.billybyte.commonlibstometeor;
 
-//import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.billybyte.commoncollections.Tuple;
-//import com.billybyte.commonlibstometeor.runs.apps.ProcessMeteorPositionChanges;
 import com.billybyte.dse.outputs.DeltaDerSen;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;

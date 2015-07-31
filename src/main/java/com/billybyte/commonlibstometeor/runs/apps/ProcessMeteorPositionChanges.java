@@ -4,10 +4,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +19,13 @@ import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 
-import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.marketdata.futures.UnderlyingShortNameFromOptionShortNameQuery;
 import com.billybyte.meteorjava.MeteorListCallback;
 import com.billybyte.meteorjava.MeteorListSendReceive;
 import com.billybyte.meteorjava.TableChangedByUser;
-import com.billybyte.meteorjava.staticmethods.Utils;
+import com.billybyte.commonstaticmethods.CollectionsStaticMethods;
+import com.billybyte.commonstaticmethods.Utils;
 
 /**
  * 	Start a loop that waits for changes in the collection
@@ -130,6 +128,8 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 
 
 
+	
+	
 	/**
 	 * Create a MeteorSendReceive<TableChangedByUser> instance to connect to Meteor,
 	 *   and subscribe to changes in TableChangedByUser records from Meteor.
@@ -139,93 +139,7 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	 *   processMrecs so that  MeteorSendReceive<M> instance to send a List<M> to Meteor of things
 	 *   like greeks, p&L, unit VaR, etc.
 	 */
-	public  void process() {
-		process2();
-//		
-//		// Create a MeteorListSendReceive instance to control communication with Meteor
-//		//  You'll reuse this connection object to get other kinds of objects besides TableChangedByUser objects
-//		// Only accept changes for the Position.class collection. 
-//		Set<String> collectionsToWatchFor = 
-//				new HashSet<String>(Arrays.asList(new String[]{
-//						Position.class.getCanonicalName(),
-////						classOfM.getCanonicalName()
-//						}));
-//		// Get a blocking queue from the mlsr that you can use in the new Runnable and new Thread that
-//		//  you create below.  This method will also subscribe to changes in the TableChangeByUser collection
-//		//  so that you can track changes in any collection on the client side, when the client adds or deletes
-//		//  records.
-//		final BlockingQueue<List<?>> blockingQueue = 
-//				mlsrOfTableChangedByUser.subscribeToTableChangedByUser(-1,collectionsToWatchFor);
-//		// Create a new anonymous Runnable instance that responds to List<Position> that the mlsr puts
-//		//   on blockingQueue
-//		Runnable r = new ProcessBlockingQueueRunnable(blockingQueue);
-//		
-//		// startup the blockingqueue taker
-//		new Thread(r).run();
-		
-	}
-	
-	/**
-	 * ProcessBlockingQueueRunnable will loop in it's run method, waiting on
-	 *   List<Position> lists to appear on its BlockingQueue<List<?>>.
-	 *   It will do some initial checking of the list, and then call the
-	 *   method processMrecs to process all of the Position records that it
-	 *   receives from the blockingQueue.  It is possible to receive
-	 *   other types of records besides Position records from the blocking queue,
-	 *   so, it is necessary to make the blocking queue of type List<?>  
-	 * @author bperlman1
-	 *
-	 */
-	private class ProcessBlockingQueueRunnable implements Runnable{
-		private final BlockingQueue<List<?>> blockingQueue;
-		private ProcessBlockingQueueRunnable(
-				BlockingQueue<List<?>> blockingQueue
-				) {
-			super();
-			this.blockingQueue = blockingQueue;
-			
-		}
-
-
-
-		@Override
-		public void run() {
-			boolean keepGoing = true;
-			// Loop until there's an error.  Remember that the loop is done on another thread.
-			while(keepGoing){
-				try {
-					List<?> dataFromCollection = blockingQueue.take();
-					// Make sure you got data.
-					if(dataFromCollection.size()<1){
-						continue;
-					}
-					// Get the class of the data.
-					Class<?> classOfData = dataFromCollection.get(0).getClass();
-					// Make sure it's of type Position.
-					if(Position.class.isAssignableFrom(classOfData)){
-						// This is a position list, so process it
-						List<Position> positionList = 
-								new ArrayList<Position>();
-						for(Object o : dataFromCollection){
-							positionList.add((Position)o);
-						}
-						Double errorValueToReturn = -11111111.0;
-						// Create records of type M and send them to Meteor clients that had a position change.
-						processMrecs(positionList,  errorValueToReturn);
-					}
-				} catch (InterruptedException e) {						
-					e.printStackTrace();
-					keepGoing=false;
-				}
-			}
-			
-		}
-		
-		
-	}
-	
-	
-	public void process2(){
+	public void process(){
 		// create a Callback to capture TableChangedByUser changes
 		MeteorListCallback<TableChangedByUser> tableChangedByUserCallback = 
 				new MeteorListCallback<TableChangedByUser>() {
@@ -383,7 +297,7 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		mongoSelectors.put("userId",userId);
 		List<M> receivedList = 
 				mlsr.getList(mongoSelectors);
-		Utils.prtListItems(receivedList);
+		CollectionsStaticMethods.prtListItems(receivedList);
 		List<String> idList = new ArrayList<String>();
 		for(M t : receivedList){
 			if(t.getUserId().compareTo(userId)==0){

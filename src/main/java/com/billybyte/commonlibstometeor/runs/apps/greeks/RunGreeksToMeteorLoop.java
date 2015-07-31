@@ -11,7 +11,7 @@ import com.billybyte.commonstaticmethods.CollectionsStaticMethods;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.meteorjava.MeteorListSendReceive;
-import com.billybyte.meteorjava.staticmethods.Utils;
+import com.billybyte.commonstaticmethods.Utils;
 
 public class RunGreeksToMeteorLoop {
 	private static class ProcessGreeksFromMeteorPositionChanges extends ProcessMeteorPositionChanges<GreeksData>{

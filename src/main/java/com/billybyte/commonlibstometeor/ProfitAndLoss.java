@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.billybyte.commoncollections.Tuple;
+import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 import com.billybyte.dse.outputs.OptPriceDerSen;
@@ -13,8 +14,13 @@ import com.billybyte.marketdata.MarketDataComLib;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.meteorjava.MeteorColumnModel;
 
-
+/**
+ * Calculate P & L from a position
+ * @author bperlman1
+ *
+ */
 public class ProfitAndLoss extends Position {
+	private static final BigDecimal BAD_RET_VALUE = new BigDecimal("-111111111");
 	private final BigDecimal pl;
 	private final String underlying;
 	private final static DerivativeSensitivityTypeInterface optPriceDerSen = 
@@ -110,29 +116,72 @@ public class ProfitAndLoss extends Position {
 	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
-			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,List<SecDef> underlyingSds) {
-		List<String> problems = new ArrayList<String>();
-		DerivativeReturn[] drArr= drSenseMap.get(optPriceDerSen);
+			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
+			List<SecDef> underlyingSds) {
+		
+		List<String> problems = new ArrayList<String>(); // init list of problems
+		DerivativeReturn[] drArr= drSenseMap.get(optPriceDerSen); // get option price
 		M m = null;
+		// init p & l
+		BigDecimal pl = BAD_RET_VALUE;
+		boolean allgood = true;
+		// initial check for bad dse return
 		if(drArr==null || drArr.length<1){
 			problems.add(sd.getShortName() + " has no DerivativeReturn array from DerivativeSetEngine");
+			allgood = false;
 		}else if(!drArr[0].isValidReturn()){
 			problems.add(sd.getShortName() + " : " + drArr[0].getException().getMessage());
-		}
-		BigDecimal price = p.getPrice();
-		if(price==null){
-			price = BigDecimal.ZERO;
-		}
-		BigDecimal pl = new BigDecimal(drArr[0].getValue().doubleValue()).subtract(price);
-		pl = pl.multiply(p.getQty());
-
-		String under=underlying;
-		// only pass symbol
-		if(under==null){
-			under="";
+			allgood = false;
 		}
 		
-		under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
+		try {
+			Double drDoubleValue = drArr[0].getValue().doubleValue();
+			if(Double.isNaN(drDoubleValue) || Double.isInfinite(drDoubleValue)){
+				problems.add(sd.getShortName() + " has dse price value that is NaN or infinate. Value="+drArr[0].toString());
+				allgood = false;
+			}
+		} catch (Exception e) {
+			problems.add(sd.getShortName() + " has dse price value that is NaN or infinate. Value="+drArr[0].toString());
+			allgood = false;
+		}
+		
+		
+		BigDecimal price = p.getPrice();
+		if(price==null){
+			problems.add(p.toString() +  " has no price field");
+			price = BAD_RET_VALUE;
+			allgood = false;
+		}
+		
+		String under="null";
+		// check underlyings
+		if(underlyingSds==null || underlyingSds.size()<1){
+			problems.add(sd.getShortName() + " no underlyings passed to positionBasedItemFromDerivativeReturn");
+			allgood = false;
+		}else{
+			// only pass symbol
+			SecDef underSds0 =underlyingSds.get(0);
+			if(underSds0==null){
+				problems.add(sd.getShortName() + " no underlyings passed to positionBasedItemFromDerivativeReturn");
+				allgood = false;
+			}else{
+				under = underSds0.getShortName();
+				under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
+				
+			}
+			
+		}
+		
+		if(allgood){
+			pl = new BigDecimal(drArr[0].getValue().doubleValue()).subtract(price);
+			pl = pl.multiply(p.getQty());			
+		}else{
+			for(String problem :problems){
+				Utils.prtObErrMess(this.getClass(), problem);				
+			}
+		}
+		
+		
 		
 		m = (M) new ProfitAndLoss(p.get_id(), p.getUserId(), 
 				p.getAccount(), p.getStrategy(), p.getType(), 

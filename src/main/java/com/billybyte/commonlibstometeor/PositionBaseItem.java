@@ -2,18 +2,11 @@ package com.billybyte.commonlibstometeor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-//import java.util.ArrayList;
-//import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import java.util.concurrent.TimeUnit;
-
 
 import com.billybyte.commoncollections.Tuple;
-//import com.billybyte.commoninterfaces.QueryInterface;
-//import com.billybyte.commonlibstometeor.runs.apps.greeks.RunGreeksFromMeteorPositionChanges;
 import com.billybyte.commonstaticmethods.Utils;
-//import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 import com.billybyte.marketdata.SecDef;

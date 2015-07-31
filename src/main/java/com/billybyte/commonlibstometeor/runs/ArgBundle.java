@@ -12,7 +12,7 @@ import org.java_websocket.WebSocket.READYSTATE;
 import me.kutrumbos.DdpClient;
 
 import com.billybyte.commonstaticmethods.LoggingUtils;
-import com.billybyte.meteorjava.staticmethods.Utils;
+import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.ui.RedirectedConsoleForJavaProcess;
 import com.billybyte.ui.RedirectedConsoleForJavaProcess.ConsoleType;
 /**
@@ -38,6 +38,9 @@ public class ArgBundle {
 	final public Integer redirectLength;
 	final public Integer redirectYloc;
 	final public Integer redirectWidth;
+	final public Long millsBeforeRestart;
+	final public String logPropertiesPath;
+	final public LoggingUtils logger;
 	
 	private static final String DEF_ADMIN_EMAIL = "admin1@demo.com";
 	private static final String DEF_ADMIN_PASS = "admin1";
@@ -49,8 +52,9 @@ public class ArgBundle {
 	private static final Integer DEF_RED_XLOC = 1;
 	private static final Integer DEF_RED_YLOC = 1;
 	private static final Integer DEF_RED_LENGTH = 800;
-	private static final Integer DEF_RED_WIDTH = 600;
-
+	private static final Integer DEF_RED_WIDTH = 400;
+	private static final Long DEF_MILLSBEFORERESTART = 5000L;
+	
 	public ArgBundle(String[] args){
 		this.argPairs = 
 				Utils.getArgPairsSeparatedByChar(args, "=");
@@ -73,23 +77,40 @@ public class ArgBundle {
 		
 		// get caller class name for logging utils and for restart
 		Class<?> clazz = getCallerClassName();
+		this.logPropertiesPath = argPairs.get("logPropertiesPath");
+		if(this.logPropertiesPath==null){
+			this.logger = new  LoggingUtils(clazz);
+		}else{
+			this.logger = new LoggingUtils(this.logPropertiesPath,null);
+		}
+		
+		
 		this.redirect = argPairs.get("redirect")==null ? false : new Boolean(argPairs.get("redirect"));
 		if(this.redirect){
 			this.redirectXloc = argPairs.get("redirectXloc")==null ? DEF_RED_XLOC : new Integer(argPairs.get("redirectXloc"));
 			this.redirectYloc = argPairs.get("redirectYloc")==null ? DEF_RED_YLOC : new Integer(argPairs.get("redirectYloc"));
 			this.redirectLength = argPairs.get("redirectLength")==null ? DEF_RED_LENGTH : new Integer(argPairs.get("redirectLength"));
 			this.redirectWidth = argPairs.get("redirectWidth")==null ? DEF_RED_WIDTH : new Integer(argPairs.get("redirectWidth"));
-			LoggingUtils loggingUtils = new  LoggingUtils(clazz);
 			Utils.prtObMess(clazz, "redirecting console output at : " + "x:" + redirectXloc  + "y:" + redirectYloc  + "len:" + redirectLength  + "wid:" + redirectWidth );
-			// redirect console to console gui
+			// redirect console to console gui and error
+			// divide the length of each console into 2, so that you have separate views for error and console
+			// error on top
 			new RedirectedConsoleForJavaProcess(
 					this.redirectWidth.intValue(), 
-					this.redirectLength.intValue(), 
+					this.redirectLength.intValue()/2, 
 					this.redirectXloc, 
 					this.redirectYloc, 
 					clazz.getCanonicalName(),
-					ConsoleType.SYSTEM_BOTH,
-					loggingUtils);
+					ConsoleType.SYSTEM_ERR,
+					logger);
+			new RedirectedConsoleForJavaProcess(
+					this.redirectWidth.intValue(), 
+					this.redirectLength.intValue()/2, 
+					this.redirectXloc, 
+					this.redirectYloc+this.redirectLength.intValue()/2, 
+					clazz.getCanonicalName(),
+					ConsoleType.SYSTEM_OUT,
+					logger);
 			
 			
 		}else{
@@ -97,6 +118,7 @@ public class ArgBundle {
 			this.redirectYloc=-1;
 			this.redirectLength=-1;
 			this.redirectWidth=-1;
+
 		}
 		
 		
@@ -121,10 +143,11 @@ public class ArgBundle {
 		Utils.prtObMess(this.getClass(), this.vmArgs.toArray(new String[]{}).toString());
 		
 		DdpClient tempDdpClient = null;
+		this.millsBeforeRestart = argPairs.get("millsBeforeRestart")==null ? DEF_MILLSBEFORERESTART : new Long(argPairs.get("millsBeforeRestart"));
 		if(restart){
 			
 			DdpRestartProcessObserver restartObserver = 
-					new DdpRestartProcessObserver(clazz, vmArgs.toArray(new String[]{}), args);
+					new DdpRestartProcessObserver(clazz, vmArgs.toArray(new String[]{}), args,millsBeforeRestart);
 			
 			try {
 				tempDdpClient = new DdpClient(meteorUrl, meteorPort);

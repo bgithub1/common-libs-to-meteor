@@ -6,7 +6,7 @@ import com.billybyte.commonlibstometeor.Position;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
 import com.billybyte.meteorjava.MeteorListCallback;
 import com.billybyte.meteorjava.MeteorListSendReceive;
-import com.billybyte.meteorjava.staticmethods.Utils;
+import com.billybyte.commonstaticmethods.Utils;
 
 /**
  * Listen for position changes, and execute analytics such as greeks and VaR
