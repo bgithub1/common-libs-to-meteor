@@ -26,16 +26,17 @@ public class RunInitializeDeleteAllTableModels {
 		} catch (URISyntaxException e) {
 			throw Utils.IllState(e);
 		}
-		// the mtmList only has one object, but I put in an iteration
-		 //  for future use.
-		mtmList = mlsrTableModel.getList(new HashMap<String, String>());
-		for(MeteorTableModel mtm:mtmList){
-			String tableId = mtm.getId();
-			String error = mlsrTableModel.deleteMeteorTableModel( tableId);
-			if(error!=null && error.compareTo("0")!=0){
-				Utils.prtObErrMess(MeteorTableModel.class, error);
-			}
-		}
+		mlsrTableModel.deleteAllTableModels();
+//		// the mtmList only has one object, but I put in an iteration
+//		 //  for future use.
+//		mtmList = mlsrTableModel.getList(new HashMap<String, String>());
+//		for(MeteorTableModel mtm:mtmList){
+//			String tableId = mtm.getId();
+//			String error = mlsrTableModel.deleteMeteorTableModel( tableId);
+//			if(error!=null && error.compareTo("0")!=0){
+//				Utils.prtObErrMess(MeteorTableModel.class, error);
+//			}
+//		}
 		
 		System.exit(0);
 
