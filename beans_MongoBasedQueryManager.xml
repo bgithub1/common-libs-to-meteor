@@ -10,6 +10,19 @@
 	<bean id="mongoIp" class="java.lang.String">
 		<constructor-arg type="java.lang.String" value="127.0.0.1" />
 	</bean>
+	
+	<bean id="mongoXmlPort" class="java.lang.Integer">
+		<constructor-arg type="java.lang.String" value="27017" />
+	</bean>
+
+	<bean id="mongoSpanPort" class="java.lang.Integer">
+		<constructor-arg type="java.lang.String" value="27022" />
+	</bean>
+	
+	<bean id="csoRegexKey" class="java.lang.String">
+		<constructor-arg type="java.lang.String" value="((G[234567])|(G(3B)|(4X)|(6B))|(W[ABCMZ]))\.FOP\.NYMEX" />
+	</bean>
+	
 <!--  
 	<bean id="impliedCSOCorrelationsMap" class="java.lang.String">
 		<constructor-arg type="java.lang.String" value="../DerivativeSetEngine/bin/com/billybyte/derivativesetengine/run/impliedCSOCorrelationsMap.csv" />
@@ -20,7 +33,10 @@
 		<constructor-arg>
 			<ref local="mongoIp"/>
 		</constructor-arg>
-		<constructor-arg type="java.lang.Integer" value="27017" />
+		<!--  <constructor-arg type="java.lang.Integer" value="27017" /> -->
+		<constructor-arg>
+			<ref local="mongoXmlPort"/>
+		</constructor-arg>
 		<constructor-arg>
 			<null/>
 		</constructor-arg>
@@ -50,7 +66,10 @@
 		<constructor-arg>
 			<ref local="mongoIp"/>
 		</constructor-arg>
-		<constructor-arg type="java.lang.Integer" value="27017" />
+		<!--  <constructor-arg type="java.lang.Integer" value="27017" /> -->
+		<constructor-arg>
+			<ref local="mongoXmlPort"/>
+		</constructor-arg>
 		<constructor-arg type="java.lang.String" value="impliedCorrelDb" />
 		<constructor-arg type="java.lang.String" value="impliedCorrelColl" />
 	</bean>
@@ -76,7 +95,10 @@
 		<constructor-arg>
 			<ref local="mongoIp"/>
 		</constructor-arg>
-		<constructor-arg type="java.lang.Integer" value="27017" />
+		<!--  <constructor-arg type="java.lang.Integer" value="27017" /> -->
+		<constructor-arg>
+			<ref local="mongoXmlPort"/>
+		</constructor-arg>
 		<constructor-arg type="java.lang.String" value="ImpliedVolDb" />
 		<constructor-arg type="java.lang.String" value="ImpliedVolColl" />
 		<constructor-arg>
@@ -146,7 +168,10 @@
 		<constructor-arg>
 			<ref local="mongoIp"/>
 		</constructor-arg>
-		<constructor-arg type="java.lang.Integer" value="27022" />
+		<!-- <constructor-arg type="java.lang.Integer" value="27022" />  -->
+		<constructor-arg>
+			<ref local="mongoSpanPort"/>
+		</constructor-arg>		
 		<constructor-arg type="java.lang.String" value="spanHistDb" />
 		<constructor-arg type="java.lang.String" value="spanHistColl" />
 	</bean>
@@ -155,7 +180,10 @@
 		<constructor-arg>
 			<ref local="mongoIp"/>
 		</constructor-arg>
-		<constructor-arg type="java.lang.Integer" value="27017" />
+		<!--  <constructor-arg type="java.lang.Integer" value="27017" /> -->
+		<constructor-arg>
+			<ref local="mongoXmlPort"/>
+		</constructor-arg>
 		<constructor-arg type="java.lang.String" value="correlDb" />
 		<constructor-arg type="java.lang.String" value="correlColl" />
 	</bean>
@@ -187,7 +215,10 @@
 		<constructor-arg>
 			<ref local="mongoIp"/>
 		</constructor-arg>
-		<constructor-arg type="java.lang.Integer" value="27017" />
+		<!--  <constructor-arg type="java.lang.Integer" value="27017" /> -->
+		<constructor-arg>
+			<ref local="mongoXmlPort"/>
+		</constructor-arg>
 		<constructor-arg type="java.lang.String" value="stkCorrXml" />
 		<constructor-arg type="java.lang.String" value="correls" />
 	</bean>
@@ -255,7 +286,8 @@
 	<util:map id="secDefQueryMap">
 			<entry key="((FOP)|(FUT)|(OPT)|(STK))" value-ref="baseUnderlyingQuery"/>
 			<entry key="((CSX)|(AAO)|(AOX))\.((FOP)|(FUT))" value-ref="calSwapQuery"/>
-			<entry key="((G[234567])|(G(3B)|(4X)|(6B)))\.FOP\.NYMEX" value-ref="csoQuery"/>
+			<!-- <entry key="((G[234567])|(G(3B)|(4X)|(6B))|(W[ABCMZ]))\.FOP\.NYMEX" value-ref="csoQuery"/>  -->
+			<entry key-ref="csoRegexKey" value-ref="csoQuery"/>
 	</util:map>
 
 	<bean id="queryManager" class="com.billybyte.dse.inputs.QueryManager" > 
