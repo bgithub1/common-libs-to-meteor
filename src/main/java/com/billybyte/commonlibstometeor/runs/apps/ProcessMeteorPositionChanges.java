@@ -147,7 +147,7 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 					public void onMessage(String messageType, String id,TableChangedByUser convertedMessage) {
 						Utils.prtObMess(this.getClass(), "TableChangedByUser callback: "+messageType);
 						Utils.prtObMess(this.getClass(), "recId: "+id+", record: " + (convertedMessage!=null ? convertedMessage.toString(): "null message"));
-						if(messageType.compareTo("added")==0){
+						if(messageType.compareTo("added")==0 || messageType.compareTo("changed")==0){
 							String[] userIdAndCollection = id.split("_");
 							String userId = userIdAndCollection[0];
 							String collection = userIdAndCollection[1];
