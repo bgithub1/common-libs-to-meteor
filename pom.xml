@@ -78,25 +78,27 @@
 		<dependency>
 			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
 			<artifactId>jddpclient</artifactId>
-			<version>0.2.0</version>
+			<version>0.3.2</version>
 		</dependency>
 		<!-- <version>86d91a2e0c</version> -->
+
 
 		<dependency>
 			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
 			<artifactId>java-lists-in-meteor</artifactId>
-			<version>0.2.0</version>
+			<version>0.3.2</version>
 		</dependency>	
 
-		<!-- <version>effd568f8c</version> -->
-
 <!--  
+
 		<dependency>
 			<groupId>com.billybyte</groupId>
 			<artifactId>java-lists-in-meteor</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>		
 -->
+
+
 
 		<dependency>
 			<groupId>com.github.bgithub1</groupId>

@@ -12,13 +12,11 @@ import java.util.concurrent.TimeUnit;
 
 import com.billybyte.commoncollections.Tuple;
 import com.billybyte.commoninterfaces.QueryInterface;
-
 import com.billybyte.commonlibstometeor.Position;
 import com.billybyte.commonlibstometeor.PositionBaseItem;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
-
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.marketdata.futures.UnderlyingShortNameFromOptionShortNameQuery;
 import com.billybyte.meteorjava.MeteorListCallback;
@@ -64,7 +62,8 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	 */
 	public ProcessMeteorPositionChanges(DerivativeSetEngine dse,
 			String meteorUrl, Integer meteorPort, String adminEmail,
-			String adminPass, Class<M> classOfM) {
+			String adminPass, 
+			final Class<M> classOfM) {
 		super();
 		this.dse = dse;
 		this.meteorUrl = meteorUrl;
@@ -72,7 +71,12 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		this.adminEmail = adminEmail;
 		this.adminPass = adminPass;
 		this.classOfM = classOfM;
+		
+		
 		this.underlingQuery = new UnderlyingShortNameFromOptionShortNameQuery(dse.getSdQuery(), dse.getEvaluationDate());
+		
+		
+		
 		try {
 			this.mlsrOfTableChangedByUser = new MeteorListSendReceive<TableChangedByUser>(100, 
 							TableChangedByUser.class, 
@@ -87,8 +91,8 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		this.mlsrForCollectionRead = 
 				new MeteorListSendReceive<Position>(mlsrOfTableChangedByUser,Position.class);
 
-	
 	}
+	
 	
 	
 
@@ -130,6 +134,20 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 
 	
 	
+	public MeteorListSendReceive<TableChangedByUser> getMlsrOfTableChangedByUser() {
+		return mlsrOfTableChangedByUser;
+	}
+
+
+
+
+	public MeteorListSendReceive<M> getMlsrOfM() {
+		return mlsrOfM;
+	}
+
+
+
+
 	/**
 	 * Create a MeteorSendReceive<TableChangedByUser> instance to connect to Meteor,
 	 *   and subscribe to changes in TableChangedByUser records from Meteor.
@@ -182,7 +200,7 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		final BlockingQueue<List<Position>> ret = new ArrayBlockingQueue<List<Position>>(100);
 		Runnable r  = new ProcessBlockingQueueRunnable2(ret);
 		// startup the blockingqueue taker
-		new Thread(r).run();
+		new Thread(r).start();
 
 		// subscribe to the callback
 

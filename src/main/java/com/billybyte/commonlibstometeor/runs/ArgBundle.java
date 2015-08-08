@@ -3,7 +3,6 @@ package com.billybyte.commonlibstometeor.runs;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +12,8 @@ import me.kutrumbos.DdpClient;
 
 import com.billybyte.commonstaticmethods.LoggingUtils;
 import com.billybyte.commonstaticmethods.Utils;
+import com.billybyte.meteorjava.MeteorListCallback;
+import com.billybyte.meteorjava.MeteorListSendReceive;
 import com.billybyte.ui.RedirectedConsoleForJavaProcess;
 import com.billybyte.ui.RedirectedConsoleForJavaProcess.ConsoleType;
 /**
@@ -55,6 +56,10 @@ public class ArgBundle {
 	private static final Integer DEF_RED_WIDTH = 400;
 	private static final Long DEF_MILLSBEFORERESTART = 5000L;
 	
+	/**
+	 * get all arguments and determine if process should be run in redirect console, and if meteor restart should be implemented
+	 * @param args
+	 */
 	public ArgBundle(String[] args){
 		this.argPairs = 
 				Utils.getArgPairsSeparatedByChar(args, "=");
@@ -76,7 +81,7 @@ public class ArgBundle {
 		this.vmArgs = runtimeMxBean.getInputArguments();
 		
 		// get caller class name for logging utils and for restart
-		Class<?> clazz = getCallerClassName();
+		final Class<?> clazz = getCallerClassName();
 		this.logPropertiesPath = argPairs.get("logPropertiesPath");
 		if(this.logPropertiesPath==null){
 			this.logger = new  LoggingUtils(clazz);
@@ -144,8 +149,10 @@ public class ArgBundle {
 		
 		DdpClient tempDdpClient = null;
 		this.millsBeforeRestart = argPairs.get("millsBeforeRestart")==null ? DEF_MILLSBEFORERESTART : new Long(argPairs.get("millsBeforeRestart"));
+		
+		
 		if(restart){
-			
+			// Handle explicit connection drop: create first level of restart - if the connection just drops explicitly (not silently)
 			DdpRestartProcessObserver restartObserver = 
 					new DdpRestartProcessObserver(clazz, vmArgs.toArray(new String[]{}), args,millsBeforeRestart);
 			
@@ -167,10 +174,14 @@ public class ArgBundle {
 				e.printStackTrace();
 			}
 			if(tempDdpClient!=null){
-				tempDdpClient.addObserver(restartObserver);			
+				tempDdpClient.addObserver(restartObserver);	
+				Utils.prtObMess(this.getClass(), "adding restart observer");
 			}
+			
 		}
+		// this needs to go here because it's final and can only be set once.
 		this.restartDdpClient = tempDdpClient;
+
 	}
 	
     private Class<?> getCallerClassName() { 
