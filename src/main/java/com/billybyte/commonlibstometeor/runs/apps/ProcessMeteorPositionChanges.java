@@ -425,9 +425,11 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 //				}
 //				
 //				under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
-				Tuple<List<String>,M> gdTuple = newby.positionBasedItemFromDerivativeReturn(p, sd, drSenseMap,underSds);
+//				Tuple<List<String>,M> gdTuple = newby.positionBasedItemFromDerivativeReturn(p, sd, drSenseMap,underSds);
+				Tuple<List<String>,List<M>> gdTuple = newby.positionBasedItemFromDerivativeReturn(p, sd, drSenseMap,underSds);
 				problems.addAll(gdTuple.getT1_instance());
-				senseList.add(gdTuple.getT2_instance());
+//				senseList.add(gdTuple.getT2_instance());
+				senseList.addAll(gdTuple.getT2_instance());
 			}
 			// send Sensitivities for this userId
 			Tuple<List<String> , List<M>> newTuple = 

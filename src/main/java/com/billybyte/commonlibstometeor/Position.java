@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-
 import com.billybyte.commoncollections.Tuple;
 import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.outputs.DerivativeReturn;
@@ -323,15 +322,27 @@ public class Position extends PositionBaseItem {
 		return new DerivativeSensitivityTypeInterface[]{optPriceDerSen};
 	}
 
+//	@Override
+//	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+//			Position p,
+//			SecDef sd,
+//			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
+//			List<SecDef> underlyingSds) {
+//		return new Tuple<List<String>, M>(new ArrayList<String>(), (M)p);
+//	}
+
+	@SuppressWarnings("unchecked")
 	@Override
-	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+	public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
 			List<SecDef> underlyingSds) {
-		return new Tuple<List<String>, M>(new ArrayList<String>(), (M)p);
+//		return new Tuple<List<String>, M>(new ArrayList<String>(), (M)p);
+		List<M> retArr = new ArrayList<M>();
+		retArr.add((M)p);
+		return new Tuple<List<String>, List<M>>(new ArrayList<String>(), retArr);
 	}
-
 	
 	
 }

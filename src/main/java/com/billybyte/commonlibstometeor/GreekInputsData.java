@@ -158,8 +158,19 @@ public class GreekInputsData extends PositionBaseItem{
 
 
 
+//	@Override
+//	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+//			Position p,
+//			SecDef sd,
+//			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
+//			List<SecDef> underlyingSds) {
+//		
+//		return null;
+//		
+//	}
+
 	@Override
-	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+	public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
@@ -168,6 +179,7 @@ public class GreekInputsData extends PositionBaseItem{
 		return null;
 		
 	}
+	
 	
 	
 

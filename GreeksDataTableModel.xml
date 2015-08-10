@@ -19,11 +19,6 @@
       <displayName>underlying</displayName>
     </com.billybyte.meteorjava.MeteorColumnModel>
     <com.billybyte.meteorjava.MeteorColumnModel>
-      <colName>symbol</colName>
-      <nameInDoc>symbol</nameInDoc>
-      <displayName>symbol</displayName>
-    </com.billybyte.meteorjava.MeteorColumnModel>
-    <com.billybyte.meteorjava.MeteorColumnModel>
       <colName>year</colName>
       <nameInDoc>year</nameInDoc>
       <displayName>year</displayName>
@@ -37,16 +32,6 @@
       <colName>day</colName>
       <nameInDoc>day</nameInDoc>
       <displayName>day</displayName>
-    </com.billybyte.meteorjava.MeteorColumnModel>
-    <com.billybyte.meteorjava.MeteorColumnModel>
-      <colName>putCall</colName>
-      <nameInDoc>putCall</nameInDoc>
-      <displayName>putCall</displayName>
-    </com.billybyte.meteorjava.MeteorColumnModel>
-    <com.billybyte.meteorjava.MeteorColumnModel>
-      <colName>strike</colName>
-      <nameInDoc>strike</nameInDoc>
-      <displayName>strike</displayName>
     </com.billybyte.meteorjava.MeteorColumnModel>
     <com.billybyte.meteorjava.MeteorColumnModel>
       <colName>delta</colName>

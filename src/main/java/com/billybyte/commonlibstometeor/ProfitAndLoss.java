@@ -113,7 +113,8 @@ public class ProfitAndLoss extends Position {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+//	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+	public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
@@ -189,7 +190,11 @@ public class ProfitAndLoss extends Position {
 				p.getMonth(), p.getDay(), p.getPutCall(), p.getStrike(), 
 				p.getPrice(),p.getQty(), pl,under);
 		
-		return new Tuple<List<String>, M>(problems, m);
+//		return new Tuple<List<String>, M>(problems, m);
+		List<M> retArr = new ArrayList<M>();
+		retArr.add(m);
+		return new Tuple<List<String>, List<M>>(problems, retArr);
+
 	}
 
 	@Override

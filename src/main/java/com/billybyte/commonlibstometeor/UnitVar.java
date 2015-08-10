@@ -68,39 +68,18 @@ public class UnitVar extends PositionBaseItem {
 
 	// !!!! this is not used right now because the method ProcessMeteorPositionChanges<UnitVar>.processSensitivitiesPerUserId
 	//        is overwritten in the static class RunUnitVarFromMeteorPositionChange.ProcessUnitVarFromMeteorPositionChanges
-//	@SuppressWarnings("unchecked")
 	@Override
-	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+//	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+	public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
 			List<SecDef> underlyingSds) {
-//		Double delta = getSense(drSenseMap, deltaDerSen);
-//		double qty = p.getQty().doubleValue();
-//		
-//		Double var = delta * qty * sd.getMultiplier().doubleValue();
-//		
-//		String userId = p.getUserId();
-//		String account = p.getAccount();
-//		String strategy = p.getStrategy();
-//		String _id = p.get_id();
-//		UnitVar ret = new UnitVar(_id, userId, account, strategy, underlying, var);
-//		List<String> problems = new ArrayList<String>();
-//
-//		return new Tuple<List<String>, M>(problems, (M)ret);
 		return null;
 	}
 	
 	
 	
-//	private Double getSense(Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap, DerivativeSensitivityTypeInterface sense){
-//		DerivativeReturn[] drArr = drSenseMap.get(sense);
-//		Double senseValue=badRet;
-//		if(drArr!=null && drArr.length>0 && drArr[0].isValidReturn()){
-//			senseValue = drArr[0].getValue().doubleValue();
-//		}
-//		return senseValue;
-//	}
 
 
 }

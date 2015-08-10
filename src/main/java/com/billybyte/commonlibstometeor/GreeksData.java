@@ -1,6 +1,7 @@
 package com.billybyte.commonlibstometeor;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,30 +25,39 @@ public class GreeksData extends PositionBaseItem{
 	static final DerivativeSensitivityTypeInterface thetaDerSen = new ThetaDerSen();
 	static final DerivativeSensitivityTypeInterface rhoDerSen = new RhoDerSen();
 	static final 		Double badRet = -1111111.0;
+	static final DecimalFormat INTDF = new DecimalFormat("0000");
 
 
 	private final String type;
 	private final String exch;
 	private final String underlying;
-	private final String symbol;
+//	private final String symbol;
 	private final String curr;
 	private final Integer year;
 	private final Integer month;
 	private final Integer day;
-	private final String putCall;
-	private final BigDecimal strike;
+//	private final String putCall;
+//	private final BigDecimal strike;
 	private final Double delta;
 	private final Double gamma;
 	private final Double vega;
 	private final Double theta;
 	private final Double rho;
 	
+//	public GreeksData(){
+//		this(
+//				null,null,null,null,null,null,
+//				null,null,null,null,null,null,
+//				null,null,null,null,null,null,null);
+//	}
+
 	public GreeksData(){
 		this(
 				null,null,null,null,null,null,
 				null,null,null,null,null,null,
-				null,null,null,null,null,null,null);
+				null,null,null,null);
 	}
+
 	
 	public GreeksData(
 			String _id, 
@@ -57,26 +67,26 @@ public class GreeksData extends PositionBaseItem{
 			String type,
 			String exch,
 			String underlying,
-			String symbol, 
+//			String symbol, 
 			String curr,
 			Integer year,
 			Integer month,
 			Integer day, 
-			String putCall, 
-			BigDecimal strike, 
+//			String putCall, 
+//			BigDecimal strike, 
 			Double delta,
 			Double gamma, Double vega, Double theta, Double rho) {
 		super(_id, userId,account,strategy);
 		this.type = type;
 		this.exch = exch;
 		this.underlying = underlying;
-		this.symbol = symbol;
+//		this.symbol = symbol;
 		this.curr = curr;
 		this.year = year;
 		this.month = month;
 		this.day = day;
-		this.putCall = putCall;
-		this.strike = strike;
+//		this.putCall = putCall;
+//		this.strike = strike;
 		this.delta = delta;
 		this.gamma = gamma;
 		this.vega = vega;
@@ -89,9 +99,9 @@ public class GreeksData extends PositionBaseItem{
 		return underlying;
 	}
 
-	public String getSymbol() {
-		return symbol;
-	}
+//	public String getSymbol() {
+//		return symbol;
+//	}
 
 	public Integer getYear() {
 		return year;
@@ -105,13 +115,13 @@ public class GreeksData extends PositionBaseItem{
 		return day;
 	}
 
-	public String getPutCall() {
-		return putCall;
-	}
-
-	public BigDecimal getStrike() {
-		return strike;
-	}
+//	public String getPutCall() {
+//		return putCall;
+//	}
+//
+//	public BigDecimal getStrike() {
+//		return strike;
+//	}
 
 	public Double getDelta() {
 		return delta;
@@ -138,13 +148,13 @@ public class GreeksData extends PositionBaseItem{
 		return super.toString() + "," +
 				type + "," + 
 				exch + "," + 
-				symbol + "," + 
+//				symbol + "," + 
 				curr+ "," + 
 				year+ "," + 
 				month + "," + 
 				day + "," + 
-				putCall + "," + 
-				strike + "," + 
+//				putCall + "," + 
+//				strike + "," + 
 				delta + ","
 				+ gamma + "," + vega + "," + theta + ","
 				+ rho;
@@ -154,68 +164,93 @@ public class GreeksData extends PositionBaseItem{
 	
 
 	@Override
-	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+//	public <M extends PositionBaseItem> Tuple<List<String>, M> positionBasedItemFromDerivativeReturn(
+	public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
 			Position p,
 			SecDef sd,
 			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
 			List<SecDef> underlyingSds) {
 		
 		List<String> problems = new ArrayList<String>();
-		
-		String type = sd.getSymbolType().toString();
-		String exch = sd.getExchange().toString();
-		String symbol = sd.getSymbol();
-		String curr = sd.getCurrency().toString();
-		int year = sd.getContractYear();
-		int month = sd.getContractMonth();
-		Integer day = sd.getContractDay();
-		day = day==null ? 0 : day;
-		String putCall = sd.getRight();
-		BigDecimal strike = sd.getStrike();
-		
-		Double delta = getSense(drSenseMap, deltaDerSen);
-		Double gamma = getSense(drSenseMap, gammaDerSen);
-		Double vega = getSense(drSenseMap, vegaDerSen);
-		Double theta = getSense(drSenseMap, thetaDerSen);
-		Double rho = getSense(drSenseMap, deltaDerSen);
+		List<M> retList = new ArrayList<M>();
 		double qty = p.getQty().doubleValue();
 		String _id = p.get_id();
 		String userId = p.getUserId();
 		String account = p.getAccount();
 		String strategy = p.getStrategy();
-		delta = delta * qty;
-		gamma = gamma * qty;
-		vega = vega * qty;
-		theta = theta * qty;
-		rho = rho * qty;
+		Double[] delta = getSense(underlyingSds,drSenseMap, deltaDerSen,qty);
+		Double[] gamma = getSense(underlyingSds,drSenseMap, gammaDerSen,qty);
+		Double[] vega = getSense(underlyingSds,drSenseMap, vegaDerSen,qty);
+		Double[] theta = getSense(underlyingSds,drSenseMap, thetaDerSen,qty);
+		Double[] rho = getSense(underlyingSds,drSenseMap, deltaDerSen,qty);
 
-		String under=underlyingSds.get(0).getShortName();
-		// only pass symbol
-		if(under==null){
-			under="";
+		for(int i = 0;i<underlyingSds.size();i++){
+			SecDef sdUnder = underlyingSds.get(i);
+			String type = sdUnder.getSymbolType().toString();
+			String exch = sdUnder.getExchange().toString();
+			String symbol = sdUnder.getSymbol();
+			String under = symbol;
+			String curr = sdUnder.getCurrency().toString();
+			int year = sdUnder.getContractYear();
+			int month = sdUnder.getContractMonth();
+			Integer day = sdUnder.getContractDay();
+			day = day==null ? 0 : day;
+			String putCall = sdUnder.getRight();
+			BigDecimal strike = sdUnder.getStrike();
+			_id = _id+INTDF.format(i);
+			
+//			M ret = 
+//					(M)new GreeksData(_id, userId, account, strategy, type, 
+//							exch,under, symbol, curr, 
+//							year, month, day, putCall, strike, 
+//							delta[i], gamma[i], vega[i], theta[i], rho[i]);
+			M ret = 
+					(M)new GreeksData(_id, userId, account, strategy, type, 
+							exch,under, curr, 
+							year, month, day,  
+							delta[i], gamma[i], vega[i], theta[i], rho[i]);
+			retList.add(ret);
+ 
 		}
 		
-		under = under.split("\\"+MarketDataComLib.DEFAULT_SHORTNAME_SEPARATOR)[0];
-
-		M ret = 
-				(M)new GreeksData(_id, userId, account, strategy, type, 
-						exch,under, symbol, curr, 
-						year, month, day, putCall, strike, 
-						delta, gamma, vega, theta, rho);
-		
-		return new Tuple<List<String>, M>(problems, ret);
+		return new Tuple<List<String>, List<M>>(problems, retList);
 		
 	}
 	
-	private Double getSense(Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap, DerivativeSensitivityTypeInterface sense){
+	private Double[] getSense(List<SecDef> underlyingSds,
+			Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap, 
+			DerivativeSensitivityTypeInterface sense,
+			double qty){
 		DerivativeReturn[] drArr = drSenseMap.get(sense);
-		Double senseValue=badRet;
-		if(drArr!=null && drArr.length>0 && drArr[0].isValidReturn()){
-			senseValue = 0.0;
-			for(DerivativeReturn dr : drArr){
-				senseValue += dr.getValue().doubleValue();
+		Double[] senseValue= null;
+		if(drArr!=null && drArr.length>0){
+			senseValue = new Double[drArr.length];
+			for(int i = 0;i<drArr.length;i++){
+				senseValue[i] = badRet;
+				if(drArr[i].isValidReturn()){
+					senseValue[i] = drArr[i].getValue().doubleValue()*qty;
+				}
 			}
 		}
+
+		// if any of the above sensitivities have only one array element, while the number
+		//   of underlyings is greater than 1, divide that sensitivity by the number of underlyings and create a
+		//   psuedo-sensitivity for each underlying.  This is especially true of things like theta, in which the dse
+		//   returns only one value for multiple underlyings
+		int underLength = underlyingSds.size();
+		if(senseValue.length<underLength){
+			// first sum up old sensevalues
+			Double totalSenseValue = 0.0;
+			for(Double partialSenseValue : senseValue){
+				totalSenseValue += partialSenseValue;
+			}
+			// now redistribute the total over all underlyings
+			senseValue = new Double[underLength];
+			for(int i = 0;i<underLength;i++){
+				senseValue[i] = totalSenseValue/underLength;
+			}
+		}
+
 		return senseValue;
 	}
 	
@@ -236,18 +271,18 @@ public class GreeksData extends PositionBaseItem{
 				new MeteorColumnModel("strategy","strategy","strategy",null);
 		MeteorColumnModel underlyingCm = 
 				new MeteorColumnModel("underlying","underlying","underlying",null);
-		MeteorColumnModel symbolCm = 
-				new MeteorColumnModel("symbol","symbol","symbol",null);
+//		MeteorColumnModel symbolCm = 
+//				new MeteorColumnModel("symbol","symbol","symbol",null);
 		MeteorColumnModel yearCm = 
 				new MeteorColumnModel("year","year","year",null);
 		MeteorColumnModel monthCm = 
 				new MeteorColumnModel("month","month","month",null);
 		MeteorColumnModel dayCm = 
 				new MeteorColumnModel("day","day","day",null);
-		MeteorColumnModel putCallCm = 
-				new MeteorColumnModel("putCall","putCall","putCall",null);
-		MeteorColumnModel strikeCm = 
-				new MeteorColumnModel("strike","strike","strike",null);
+//		MeteorColumnModel putCallCm = 
+//				new MeteorColumnModel("putCall","putCall","putCall",null);
+//		MeteorColumnModel strikeCm = 
+//				new MeteorColumnModel("strike","strike","strike",null);
 		MeteorColumnModel deltaCm = 
 				new MeteorColumnModel("delta","delta","delta",new String[]{"delta"});
 		MeteorColumnModel gammaCm = 
@@ -259,10 +294,16 @@ public class GreeksData extends PositionBaseItem{
 		MeteorColumnModel rhoCm = 
 				new MeteorColumnModel("rho","rho","rho",new String[]{"rho"});
 	
+//		MeteorColumnModel[] ret = {
+//				accountCm,strategyCm,
+//				underlyingCm,symbolCm,
+//				yearCm,monthCm,dayCm,putCallCm,strikeCm,
+//				deltaCm,gammaCm,vegaCm,thetaCm,rhoCm
+//		};
 		MeteorColumnModel[] ret = {
 				accountCm,strategyCm,
-				underlyingCm,symbolCm,
-				yearCm,monthCm,dayCm,putCallCm,strikeCm,
+				underlyingCm,
+				yearCm,monthCm,dayCm,
 				deltaCm,gammaCm,vegaCm,thetaCm,rhoCm
 		};
 		return ret;
