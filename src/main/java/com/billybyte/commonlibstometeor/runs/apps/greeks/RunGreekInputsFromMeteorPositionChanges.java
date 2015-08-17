@@ -26,6 +26,7 @@ import com.billybyte.queries.ComplexQueryResult;
  * @author bperlman1
  *
  */
+@Deprecated
 public class RunGreekInputsFromMeteorPositionChanges {
 	private static class ProcessGreekInputsFromMeteorPositionChanges extends ProcessMeteorPositionChanges<GreekInputsData>{
 
@@ -103,6 +104,8 @@ public class RunGreekInputsFromMeteorPositionChanges {
 				// put the header returned by getCsvListFromInBlkMap in that list
 				GreekInputsData gidHeader = 
 						new GreekInputsData(header[0], userId, "", "", header);
+//				GreekInputsData gidHeader = 
+//						new GreekInputsData("ColumnNames", userId, "", "", header);
 				greekInputList.add(gidHeader);
 				// put the csv inputs for the shortNames that this userId used in the List<GreekInputsData> of this tuple entry
 				for(String shortName : entry.getValue()){

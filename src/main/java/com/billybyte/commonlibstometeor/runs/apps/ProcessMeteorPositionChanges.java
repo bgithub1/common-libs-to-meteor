@@ -49,7 +49,24 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	private final MeteorListSendReceive<TableChangedByUser> mlsrOfTableChangedByUser;
 	private final MeteorListSendReceive<M> mlsrOfM;
 	private final MeteorListSendReceive<Position> mlsrForCollectionRead;
+	private final String[] otherTableNamesToWatchFor;
 	
+
+	/**
+	 * 
+	 * @param dse
+	 * @param meteorUrl
+	 * @param meteorPort
+	 * @param adminEmail
+	 * @param adminPass
+	 * @param classOfM
+	 */
+	public ProcessMeteorPositionChanges(DerivativeSetEngine dse,
+			String meteorUrl, Integer meteorPort, String adminEmail,
+			String adminPass,
+			final Class<M> classOfM) {
+		this(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM, null);
+	}
 	
 	/**
 	 * 
@@ -63,7 +80,8 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 	public ProcessMeteorPositionChanges(DerivativeSetEngine dse,
 			String meteorUrl, Integer meteorPort, String adminEmail,
 			String adminPass, 
-			final Class<M> classOfM) {
+			final Class<M> classOfM,
+			String[] otherTableNamesToWatchFor) {
 		super();
 		this.dse = dse;
 		this.meteorUrl = meteorUrl;
@@ -71,7 +89,7 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		this.adminEmail = adminEmail;
 		this.adminPass = adminPass;
 		this.classOfM = classOfM;
-		
+		this.otherTableNamesToWatchFor = otherTableNamesToWatchFor;
 		
 		this.underlingQuery = new UnderlyingShortNameFromOptionShortNameQuery(dse.getSdQuery(), dse.getEvaluationDate());
 		
@@ -172,8 +190,19 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 							if(collection==null)return;
 							boolean check = collection.compareTo(Position.class.getCanonicalName())==0 || collection.compareTo(classOfM.getCanonicalName())==0;
 							if(!check){
-								return;
+								if(otherTableNamesToWatchFor==null || otherTableNamesToWatchFor.length<1){
+									return;
+								}
+								for(String otherTableName : otherTableNamesToWatchFor){
+									if(collection.compareTo(otherTableName)==0){
+										check = true;
+									}
+								}
+								if(!check) {
+									return;
+								}
 							}
+							
 							
 							// Now get the List<?> of records of type clazz from Meteor that
 							//  has been changed by a Meteor client.

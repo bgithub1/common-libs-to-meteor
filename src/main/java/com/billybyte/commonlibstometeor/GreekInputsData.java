@@ -8,7 +8,7 @@ import com.billybyte.dse.outputs.DerivativeReturn;
 import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
 import com.billybyte.marketdata.SecDef;
 import com.billybyte.meteorjava.MeteorColumnModel;
-
+@Deprecated
 public class GreekInputsData extends PositionBaseItem{
 
 
