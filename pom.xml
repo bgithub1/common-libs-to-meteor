@@ -78,7 +78,7 @@
 		<dependency>
 			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
 			<artifactId>jddpclient</artifactId>
-			<version>0.4.0</version>
+			<version>0.4.1</version>
 		</dependency>
 		<!-- <version>86d91a2e0c</version> -->
 
@@ -86,7 +86,7 @@
 		<dependency>
 			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
 			<artifactId>java-lists-in-meteor</artifactId>
-			<version>0.4.0</version>
+			<version>0.4.1</version>
 		</dependency>	
 
 <!--  

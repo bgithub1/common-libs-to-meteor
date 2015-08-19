@@ -257,11 +257,14 @@ public class Position extends PositionBaseItem {
 				"account","strategy","price","qty"
 		});
 		
+		Map<String, String> regexValidationMap = new HashMap<String, String>();
+		regexValidationMap.put("price",MeteorValidator.REGEX_DECIMAL_MASK);
+		regexValidationMap.put("qty",MeteorValidator.REGEX_INTEGER_MASK);
 		MeteorValidator ret = 
 				new MeteorValidator(
 						classOfDataToBeValidated, jnestMap, 
 						dependentFieldValidationOrderList, 
-						independentFields, freeFields);
+						independentFields, freeFields,regexValidationMap);
 		return ret;
 	}
 	
