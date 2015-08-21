@@ -60,19 +60,19 @@
 	      <scope>test</scope>
 	    </dependency>
 
+  
+<!--  
 		<dependency>
 		    <groupId>com.github.bgithub1</groupId>
 		    <artifactId>common-libs</artifactId>
-		    <version>0.1.3</version>
+		    <version>0.1.4</version>
 		</dependency>
-  
-<!--  
+-->
 		<dependency>
 			<groupId>com.billybyte</groupId>
 		    <artifactId>common-libs</artifactId>
 		    <version>1.0</version>
 		</dependency>
--->
 
 	
 		<dependency>
@@ -83,21 +83,21 @@
 		<!-- <version>86d91a2e0c</version> -->
 
 
+<!--  
 		<dependency>
 			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
 			<artifactId>java-lists-in-meteor</artifactId>
 			<version>0.4.1</version>
 		</dependency>	
 
-<!--  
+-->
+
 
 		<dependency>
 			<groupId>com.billybyte</groupId>
 			<artifactId>java-lists-in-meteor</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>		
--->
-
 
 
 		<dependency>

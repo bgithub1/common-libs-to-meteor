@@ -2,24 +2,21 @@ package com.billybyte.commonlibstometeor.runs.apps.greeks;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.billybyte.commoncollections.Tuple;
+import com.billybyte.commonlibstometeor.DummyPositionBased;
 import com.billybyte.commonlibstometeor.Position;
-import com.billybyte.commonlibstometeor.PositionBaseItem;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
 import com.billybyte.commonlibstometeor.runs.apps.ProcessMeteorPositionChanges;
 import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.dse.inputs.InBlk;
-import com.billybyte.dse.outputs.DerivativeReturn;
-import com.billybyte.dse.outputs.DerivativeSensitivityTypeInterface;
-import com.billybyte.marketdata.SecDef;
-import com.billybyte.meteorjava.MeteorColumnModel;
+import com.billybyte.meteorjava.MeteorBaseListItem;
 import com.billybyte.meteorjava.MeteorCsvSendReceive;
 import com.billybyte.queries.ComplexQueryResult;
 
@@ -33,33 +30,33 @@ import com.billybyte.queries.ComplexQueryResult;
 public class RunGreekInputsCsvFromMeteorPositionChanges {
 	public static final String GREEKINPUTSDATA_TABLENAME = "GreekInputsData";
 	
-	private class DummyPositionBased extends PositionBaseItem{
-
-		public DummyPositionBased() {
-			super(null,null,null,null);
-			// not used
-		}
-
-		@Override
-		public MeteorColumnModel[] buildColumnModelArray() {
-			return null;
-		}
-
-		@Override
-		public DerivativeSensitivityTypeInterface[] getDseSenseArray() {
-			return null;
-		}
-
-		@Override
-		public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
-				Position p,
-				SecDef sd,
-				Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
-				List<SecDef> underlyingSds) {
-			return null;
-		}
-		
-	}
+//	private class DummyPositionBased extends PositionBaseItem{
+//
+//		public DummyPositionBased() {
+//			super(null,null,null,null);
+//			// not used
+//		}
+//
+//		@Override
+//		public MeteorColumnModel[] buildColumnModelArray() {
+//			return null;
+//		}
+//
+//		@Override
+//		public DerivativeSensitivityTypeInterface[] getDseSenseArray() {
+//			return null;
+//		}
+//
+//		@Override
+//		public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
+//				Position p,
+//				SecDef sd,
+//				Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
+//				List<SecDef> underlyingSds) {
+//			return null;
+//		}
+//		
+//	}
 	
 	
 	private static class ProcessGreekInputsFromMeteorPositionChanges extends ProcessMeteorPositionChanges<DummyPositionBased>{
@@ -70,7 +67,7 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 				DerivativeSetEngine dse,
 				String meteorUrl, Integer meteorPort, String adminEmail,
 				String adminPass) {
-			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, DummyPositionBased.class,new String[]{tableName});
+			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, DummyPositionBased.class,new String[]{Position.class.getCanonicalName(),tableName});
 			this.tableName = tableName;
 			this.mcsvsr = new MeteorCsvSendReceive(this.getMlsrOfTableChangedByUser());
 		}
@@ -121,7 +118,8 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 				}
 				outputCsv.add(newLine);
 			}
-			this.mcsvsr.sendCsvData(onlyUserId, tableName, outputCsv);
+	
+			this.mcsvsr.sendCsvData(onlyUserId, tableName, outputCsv,true);
 			
 //			Map<String, Tuple<List<String>, List<String[]>>> outputPerUserid =
 //					processCsvPerUserId(positionFromMeteor,-1111111.00);
@@ -213,8 +211,10 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 //		}
 //
 
+
 		
 	}
+	
 	
 	
 	public static void main(String[] args) {

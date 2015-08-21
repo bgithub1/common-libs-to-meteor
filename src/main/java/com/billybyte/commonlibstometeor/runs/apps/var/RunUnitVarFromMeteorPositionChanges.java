@@ -30,11 +30,7 @@ import com.billybyte.queries.ComplexQueryResult;
 
 public class RunUnitVarFromMeteorPositionChanges {
 	private static class ProcessUnitVarFromMeteorPositionChanges extends ProcessMeteorPositionChanges<UnitVar>{
-//		private final double daysPerVar;
-//		private final double confidence;
-//		private final double daysPerYear;
 		private final PortfolioVarCalculatorDeltaGamma varCalculator;
-//		private final DseInputQuery<BigDecimal> correlQuery;
 
 		
 		public ProcessUnitVarFromMeteorPositionChanges(DerivativeSetEngine dse,
@@ -42,10 +38,6 @@ public class RunUnitVarFromMeteorPositionChanges {
 				String adminPass, Class<UnitVar> classOfM, double daysPerVar,
 				double confidence, double daysPerYear) {
 			super(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM);
-//			this.daysPerVar = daysPerVar;
-//			this.confidence = confidence;
-//			this.daysPerYear = daysPerYear;
-//			this.correlQuery = dse.getQueryManager().getQuery(new CorrDiot());
 			this.varCalculator = new PortfolioVarCalculatorDeltaGamma(dse);
 		}
 

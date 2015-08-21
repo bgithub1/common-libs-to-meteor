@@ -65,17 +65,19 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 			String meteorUrl, Integer meteorPort, String adminEmail,
 			String adminPass,
 			final Class<M> classOfM) {
-		this(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM, null);
+//		this(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM, null);
+		this(dse, meteorUrl, meteorPort, adminEmail, adminPass, classOfM, new String[]{Position.class.getCanonicalName(),classOfM.getCanonicalName()});
 	}
 	
 	/**
 	 * 
-	 * @param dse
-	 * @param meteorUrl
-	 * @param meteorPort
-	 * @param adminEmail
-	 * @param adminPass
-	 * @param classOfM
+	 * @param dse DerivativeSetEngine
+	 * @param meteorUrl String
+	 * @param meteorPort Integer
+	 * @param adminEmail String
+	 * @param adminPass String
+	 * @param classOfM Class<M>
+	 * @param otherTableNamesToWatchFor String[]
 	 */
 	public ProcessMeteorPositionChanges(DerivativeSetEngine dse,
 			String meteorUrl, Integer meteorPort, String adminEmail,
@@ -188,20 +190,33 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 							String userId = userIdAndCollection[0];
 							String collection = userIdAndCollection[1];
 							if(collection==null)return;
-							boolean check = collection.compareTo(Position.class.getCanonicalName())==0 || collection.compareTo(classOfM.getCanonicalName())==0;
-							if(!check){
-								if(otherTableNamesToWatchFor==null || otherTableNamesToWatchFor.length<1){
-									return;
-								}
-								for(String otherTableName : otherTableNamesToWatchFor){
-									if(collection.compareTo(otherTableName)==0){
-										check = true;
-									}
-								}
-								if(!check) {
-									return;
+							boolean check=false;
+							if(otherTableNamesToWatchFor==null || otherTableNamesToWatchFor.length<1){
+								return;
+							}
+							for(String otherTableName : otherTableNamesToWatchFor){
+								if(collection.compareTo(otherTableName)==0){
+									check = true;
 								}
 							}
+							if(!check) {
+								return;
+							}
+							
+//							boolean check = collection.compareTo(Position.class.getCanonicalName())==0 || collection.compareTo(classOfM.getCanonicalName())==0;							
+//							if(!check){
+//								if(otherTableNamesToWatchFor==null || otherTableNamesToWatchFor.length<1){
+//									return;
+//								}
+//								for(String otherTableName : otherTableNamesToWatchFor){
+//									if(collection.compareTo(otherTableName)==0){
+//										check = true;
+//									}
+//								}
+//								if(!check) {
+//									return;
+//								}
+//							}
 							
 							
 							// Now get the List<?> of records of type clazz from Meteor that
