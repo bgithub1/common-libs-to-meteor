@@ -283,11 +283,75 @@
 		</constructor-arg>
 	</bean> 
 
+<!--  
+		int[] hknvMapper = {3,3,3,5,5,7,7,10,10,10,3,3};
+		qm.addUnderlyingSecDefQuery(
+				"^SB\\.FOP\\.NYBOT", 
+				new SerialOptUnderQuery(secDefQuery, hknvMapper));
+
+-->
+		<util:list id="hknvMapper">
+		  <value>3</value>
+		  <value>3</value>
+		  <value>3</value>
+		  <value>5</value>
+		  <value>5</value>
+		  <value>7</value>
+		  <value>7</value>
+		  <value>10</value>
+		  <value>10</value>
+		  <value>10</value>
+		  <value>3</value>
+		  <value>3</value>
+		</util:list>
+
+	<bean id="sbUnderQuery" class="com.billybyte.dse.queries.SerialOptUnderQuery" > 
+		<constructor-arg>
+			<ref local="sdQuery"/>
+		</constructor-arg>
+		<constructor-arg>
+			<ref local="hknvMapper"/>
+		</constructor-arg>
+	</bean> 
+	
+<!--  
+		int[] fhknuxMapper = {1,3,3,5,5,7,7,9,9,11,11,1};
+		qm.addUnderlyingSecDefQuery(
+				"((OJ)|(OZR))\\.FOP\\.((NYBOT)|(ECBOT))\\.USD", 
+				new SerialOptUnderQuery(secDefQuery, fhknuxMapper));
+-->	
+		<util:list id="fhknuxMapper">
+		  <value>1</value>
+		  <value>3</value>
+		  <value>3</value>
+		  <value>5</value>
+		  <value>5</value>
+		  <value>7</value>
+		  <value>7</value>
+		  <value>9</value>
+		  <value>9</value>
+		  <value>11</value>
+		  <value>11</value>
+		  <value>1</value>
+		</util:list>
+
+	<bean id="ojUnderQuery" class="com.billybyte.dse.queries.SerialOptUnderQuery" > 
+		<constructor-arg>
+			<ref local="sdQuery"/>
+		</constructor-arg>
+		<constructor-arg>
+			<ref local="fhknuxMapper"/>
+		</constructor-arg>
+	</bean> 
+
+	
 	<util:map id="secDefQueryMap">
 			<entry key="((FOP)|(FUT)|(OPT)|(STK))" value-ref="baseUnderlyingQuery"/>
 			<entry key="((CSX)|(AAO)|(AOX))\.((FOP)|(FUT))" value-ref="calSwapQuery"/>
 			<!-- <entry key="((G[234567])|(G(3B)|(4X)|(6B))|(W[ABCMZ]))\.FOP\.NYMEX" value-ref="csoQuery"/>  -->
 			<entry key-ref="csoRegexKey" value-ref="csoQuery"/>
+			<entry key="SB\.FOP\.NYBOT" value-ref="sbUnderQuery"/>
+			<entry key="OJ\.FOP\.NYBOT" value-ref="ojUnderQuery"/>
 	</util:map>
 
 	<bean id="queryManager" class="com.billybyte.dse.inputs.QueryManager" > 
