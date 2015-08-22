@@ -2,7 +2,6 @@ package com.billybyte.commonlibstometeor.runs.apps.greeks;
 
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.billybyte.commonlibstometeor.GreeksData;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
@@ -12,14 +11,16 @@ import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.meteorjava.MeteorListCallback;
-import com.billybyte.meteorjava.MeteorListSendReceive;
 
 
 /**
+ * I use RunGreekInputsCsvFromMeteorPosition now - which is much better and easier.
+ * This class has been deprecatd
  * Run greeks reactively when a meteor client adds or removes a Position record.
  * @author bperlman1
  *
  */
+@Deprecated
 public class RunGreeksFromMeteorPositionChanges {
 	private static class ProcessGreeksFromMeteorPositionChanges extends ProcessMeteorPositionChanges<GreeksData>{
 

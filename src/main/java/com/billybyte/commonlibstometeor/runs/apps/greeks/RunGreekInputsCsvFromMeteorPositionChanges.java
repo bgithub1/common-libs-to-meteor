@@ -2,7 +2,6 @@ package com.billybyte.commonlibstometeor.runs.apps.greeks;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +15,13 @@ import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.dse.inputs.InBlk;
-import com.billybyte.meteorjava.MeteorBaseListItem;
 import com.billybyte.meteorjava.MeteorCsvSendReceive;
 import com.billybyte.queries.ComplexQueryResult;
 
 
 /**
- * Get greek inputs reactively when a meteor client adds or removes a Position record.
+ * Get greek inputs reactively when a meteor client adds or removes a Position record,
+ *   or when she hits the recalc button.
  * This class overrides processSensitivitiesPerUserId b/c it does not return a record per position per userId
  * @author bperlman1
  *
@@ -30,35 +29,15 @@ import com.billybyte.queries.ComplexQueryResult;
 public class RunGreekInputsCsvFromMeteorPositionChanges {
 	public static final String GREEKINPUTSDATA_TABLENAME = "GreekInputsData";
 	
-//	private class DummyPositionBased extends PositionBaseItem{
-//
-//		public DummyPositionBased() {
-//			super(null,null,null,null);
-//			// not used
-//		}
-//
-//		@Override
-//		public MeteorColumnModel[] buildColumnModelArray() {
-//			return null;
-//		}
-//
-//		@Override
-//		public DerivativeSensitivityTypeInterface[] getDseSenseArray() {
-//			return null;
-//		}
-//
-//		@Override
-//		public <M extends PositionBaseItem> Tuple<List<String>, List<M>> positionBasedItemFromDerivativeReturn(
-//				Position p,
-//				SecDef sd,
-//				Map<DerivativeSensitivityTypeInterface, DerivativeReturn[]> drSenseMap,
-//				List<SecDef> underlyingSds) {
-//			return null;
-//		}
-//		
-//	}
 	
-	
+	/**
+	 * Private extension of ProcessMeteorPositionChanges that overrides processMrecs.
+	 *   Normally, you would implement methods in the generic class of that would
+	 *     return "per position record" results.  However, don't want to return a the
+	 *     same greeks input record for several positions that hold the same shortName. 
+	 * @author bill perlman
+	 *
+	 */
 	private static class ProcessGreekInputsFromMeteorPositionChanges extends ProcessMeteorPositionChanges<DummyPositionBased>{
 		private final MeteorCsvSendReceive mcsvsr;
 		private final String tableName;
@@ -79,11 +58,18 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 			return null;
 		}
 		
+		/**
+		 * Override of processMrecs to aggregate results by shortName, and return one
+		 *   record per shortName with all of the inputs that go into the DerivativeSetEngine
+		 *   calcs for that shortName.
+		 */
 		@Override
 		public void processMrecs(List<Position> positionFromMeteor,
 				Double errorValueToReturn) {
 			Set<String> derivativeShortNameSet = new HashSet<String>();
 			Set<String> userIdSet = new HashSet<String>(); // this should be only one element
+			// ***** !!! all of the records in positionFromMeteor should be for the same 
+			//    userId.  
 			String onlyUserId = null;
 			for(Position p : positionFromMeteor){
 				derivativeShortNameSet.add(p.getShortName());
@@ -92,6 +78,7 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 					userIdSet.add(onlyUserId);
 				}
 			}
+			// throw exceptions if no or multiple users are being processed.
 			if(userIdSet.size()>1){
 				throw Utils.IllState(this.getClass(), "more than one userId is being processed when it shouldn't be");
 			}
@@ -99,6 +86,7 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 				throw Utils.IllState(this.getClass(), "no userId is being processed when it should be");
 			}
 			
+			// get inputs from dse.
 			Map<String, ComplexQueryResult<InBlk>> inputBlkCqrMap = 
 					getDse().getInputs(derivativeShortNameSet);
 			
@@ -121,97 +109,7 @@ public class RunGreekInputsCsvFromMeteorPositionChanges {
 	
 			this.mcsvsr.sendCsvData(onlyUserId, tableName, outputCsv,true);
 			
-//			Map<String, Tuple<List<String>, List<String[]>>> outputPerUserid =
-//					processCsvPerUserId(positionFromMeteor,-1111111.00);
-//			
-//			for(Entry<String, Tuple<List<String>, List<String[]>>> entry : outputPerUserid.entrySet()){
-//				String userId = entry.getKey();
-//				Tuple<List<String>, List<String[]>> tuple = entry.getValue();
-//				if(tuple.getT2_instance()!=null){
-//					List<String[]> csv = tuple.getT2_instance();
-//					mcsvsr.sendCsvData(userId, tableName, csv);
-//				}else{
-//					List<String> errors = tuple.getT1_instance();
-//					for(String error : errors){
-//						Utils.prtObErrMess(this.getClass(), error);
-//					}
-//				}
-//			}
 		}
-
-		
-//		public Map<String, Tuple<List<String>, List<String[]>>> processCsvPerUserId(
-//				List<Position> positionFromMeteor, Double errorValueToReturn) {
-//			// create return object
-//			Map<String, Tuple<List<String>, List<String[]>>> ret = 
-//					new HashMap<String, Tuple<List<String>,List<String[]>>>();
-//			// get shortNames per userId, and all shortNames 
-//			// userIdToShortNameListMap is a map that maps userId's to lists of shortNames
-//			Map<String,List<String>> userIdToShortNameListMap = new HashMap<String, List<String>>();
-//			// derivativeShortNameSet is the set of all shortNames for all userIds
-//			Set<String> derivativeShortNameSet = new HashSet<String>();
-//			for(Position p : positionFromMeteor){
-//				derivativeShortNameSet.add(p.getShortName());
-//				String userId = p.getUserId();
-//				List<String> snList = userIdToShortNameListMap.get(userId);
-//				if(snList==null){
-//					 snList = new ArrayList<String>();
-//					 userIdToShortNameListMap.put(userId,snList);
-//				}
-//				snList.add(p.getShortName());
-//			}
-//			
-//			// inputBlkCqrMap is the Dse inputs blk
-//			Map<String, ComplexQueryResult<InBlk>> inputBlkCqrMap = 
-//					getDse().getInputs(derivativeShortNameSet);
-//			
-//			// inputCsvList is a formated list of inputs
-//			List<String[]> inputCsvList =
-//					InBlk.getCsvListFromInBlkMap(getDse(), inputBlkCqrMap, 4);
-//			
-//			// sort the inputCsvList into map of shortName/List<String[]>
-//			Map<String, String[]> shortNameToInputCsvList = new HashMap<String, String[]>();
-//			String[] header = inputCsvList.get(0);
-//			for(int i = 1;i<inputCsvList.size();i++){
-//				String[] inputCsv = inputCsvList.get(i);
-//				String shortName = inputCsv[0];
-//				shortNameToInputCsvList.put(shortName,inputCsv);
-//			}
-//			
-//			// dummy problems list - problems aren't implemented yet so just pass empty list
-//			List<String> problems = new ArrayList<String>();
-//			
-//			
-//			// iterate thru userIdToShortNameListMap to get results per userId			
-//			for(Entry<String, List<String>> entry : userIdToShortNameListMap.entrySet()){
-//				// get the userId
-//				String userId = entry.getKey();
-//				// see if we have already created a return tuple for this userId
-//				Tuple<List<String>, List<String[]>> tuple  = ret.get(userId);
-//				if(tuple==null){
-//					// no, create new tuple with empty String[] csv list
-//					tuple = new Tuple<List<String>, List<String[]>>(problems, new ArrayList<String[]>());
-//					// put it back in the ret map
-//					ret.put(userId, tuple);
-//				}
-//				
-//				// get the List<String[]> for this userId
-//				List<String[]> greekInputList = tuple.getT2_instance();
-//				// put the header returned by getCsvListFromInBlkMap in that list
-//				greekInputList.add(header);
-//				// put the csv inputs for the shortNames that this userId used in the List<GreekInputsData> of this tuple entry
-//				for(String shortName : entry.getValue()){
-//					String[] csvInputs = shortNameToInputCsvList.get(shortName);
-//					greekInputList.add(csvInputs);
-//				}
-//			}
-//			
-//			// return it
-//			return ret;
-//		}
-//
-
-
 		
 	}
 	
