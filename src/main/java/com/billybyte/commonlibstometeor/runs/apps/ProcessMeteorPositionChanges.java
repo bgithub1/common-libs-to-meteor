@@ -1,11 +1,14 @@
 package com.billybyte.commonlibstometeor.runs.apps;
 
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -483,5 +486,22 @@ public abstract  class ProcessMeteorPositionChanges<M extends PositionBaseItem> 
 		return ret;
 	}
 	
-	
+	protected String getSingleUserId(
+			List<Position> positionFromMeteor){
+		Set<String> userIdSet = new HashSet<String>(); // this should be only one element
+		String onlyUserId = null;
+		for(Position p : positionFromMeteor){
+			onlyUserId = p.getUserId();
+			if(onlyUserId!=null){
+				userIdSet.add(onlyUserId);
+			}
+		}
+		if(userIdSet.size()>1){
+			throw Utils.IllState(this.getClass(), "more than one userId is being processed when it shouldn't be");
+		}
+		if(onlyUserId==null){
+			throw Utils.IllState(this.getClass(), "no userId is being processed when it should be");
+		}
+		return onlyUserId;
+	}
 }
