@@ -60,21 +60,19 @@
 	      <scope>test</scope>
 	    </dependency>
 
-
+<!--  
 		<dependency>
 		    <groupId>com.github.bgithub1</groupId>
 		    <artifactId>common-libs</artifactId>
 		    <version>0.1.6</version>
 		</dependency>
-
-<!--  
+-->
 		<dependency>
 			<groupId>com.billybyte</groupId>
 		    <artifactId>common-libs</artifactId>
 		    <version>1.0</version>
 		</dependency>
 
--->
 	
 		<dependency>
 			<groupId>com.github.bgithub1.javaListsInMeteor</groupId>
