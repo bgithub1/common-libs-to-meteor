@@ -1,20 +1,28 @@
 package com.billybyte.commonlibstometeor.runs.examples;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import com.billybyte.clientserver.httpserver.HttpCsvQueryServer;
 import com.billybyte.commoninterfaces.QueryInterface;
+import com.billybyte.commoninterfaces.SettlementDataInterface;
 import com.billybyte.commonlibstometeor.runs.ArgBundle;
 import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.dse.inputs.InBlk;
+import com.billybyte.dse.inputs.diotypes.AtmDiot;
+import com.billybyte.dse.inputs.diotypes.SettlePriceDiot;
+import com.billybyte.dse.inputs.diotypes.VolDiot;
+import com.billybyte.dse.outputs.DerivativeReturn;
+import com.billybyte.dse.outputs.OptPriceDerSen;
 import com.billybyte.queries.ComplexQueryResult;
 
 public class RunHttpServer {
@@ -35,7 +43,7 @@ public class RunHttpServer {
 	
 		
 		QueryInterface<String, List<String[]>> csvQuery = 
-				new MyQuery(dse);
+				new MyGreeksInputQuery(dse);
 		HttpCsvQueryServer httpServerQuery = null;
 		try {
 			httpServerQuery = 
@@ -44,18 +52,21 @@ public class RunHttpServer {
 		} catch (IOException e) {
 			throw Utils.IllState(e);
 		}
+		httpServerQuery.addAlternativePath("/futpricevol", new MyFutPriceVolQuery(dse));
 		httpServerQuery.start();
 	}
 	
-	static class MyQuery implements QueryInterface<String, List<String[]>> {
+	static class MyGreeksInputQuery implements QueryInterface<String, List<String[]>> {
 
 		private final DerivativeSetEngine dse;
-		private MyQuery(DerivativeSetEngine dse){
+		private MyGreeksInputQuery(DerivativeSetEngine dse){
 			this.dse = dse;
 		}
 		@Override
 		public List<String[]> get(String qparams, int timeoutValue,
 				TimeUnit timeUnitType) {
+			
+			// get type of request, which is in first param
 			// the qparams string has the http parameters.
 			//   
     		String[] matches = qparams.split("&");
@@ -87,4 +98,53 @@ public class RunHttpServer {
 		}
 		
 	}
+	
+	
+	static class MyFutPriceVolQuery implements QueryInterface<String, List<String[]>> {
+
+		private final DerivativeSetEngine dse;
+		private MyFutPriceVolQuery(DerivativeSetEngine dse){
+			this.dse = dse;
+		}
+		@Override
+		public List<String[]> get(String qparams, int timeoutValue,
+				TimeUnit timeUnitType) {
+			
+			// get type of request, which is in first param
+			// the qparams string has the http parameters.
+			//   
+    		String[] matches = qparams.split("&");
+    		Set<String> derivativeShortNameSet = new HashSet<String>();
+    		for(String match: matches){
+    			String[] pair = match.split("=");
+    			derivativeShortNameSet.add(pair[1]);
+    		}
+    		Map<String, ComplexQueryResult<InBlk>> inputBlkCqrMap = 
+					dse.getInputs(derivativeShortNameSet);
+			List<String[]> outputCsv = new ArrayList<String[]>();
+			String[] header = {"shortName","settle","settleVol"};
+			outputCsv.add(header);
+    		for(String sn : derivativeShortNameSet){
+    			ComplexQueryResult<InBlk> inBlkCqr = inputBlkCqrMap.get(sn);
+    			String[] newLine = new String[3];
+				newLine[0] = sn;
+    			if(inBlkCqr!=null && inBlkCqr.isValidResult()){
+    				InBlk inBlk = inBlkCqr.getResult();
+    				SettlementDataInterface settle = inBlk.getMainInputList(new SettlePriceDiot());
+    				if(settle!=null && settle.getPrice()!=null){
+    					newLine[1] = settle.getPrice().toString();
+    				}
+    				BigDecimal vol = inBlk.getMainInputList(new VolDiot());
+    				if(vol!=null){
+    					newLine[2] = vol.toString();
+    				}
+    			}
+    			outputCsv.add(newLine);
+    		}
+    		
+			return outputCsv;
+		}
+		
+	}
+
 }
