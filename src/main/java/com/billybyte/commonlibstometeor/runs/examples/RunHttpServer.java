@@ -106,7 +106,7 @@ mongoXmlVolCollName=ImpliedVolColl
 				new MongoXml<BigDecimal>(mongoPricVolUrl, mongoPriceVolPort, mongoXmlVolDbName, mongoXmlVolCollName);
 		// end mongoXmlSettle
 		httpServerQuery.addAlternativePath("/futpricevol", new MyFutPriceVolQuery(mongoXmlSettle,mongoXmlVol));
-		
+		httpServerQuery.addAlternativePath("/shortnames", new MyShortNameQuery(mongoXmlVol));
 		httpServerQuery.start();
 	}
 	
@@ -155,7 +155,7 @@ mongoXmlVolCollName=ImpliedVolColl
 	
 	static class MyFutPriceVolQuery implements QueryInterface<String, List<String[]>> {
 		private final MongoXml<SettlementDataInterface> mongoXmlSettle;
-		MongoXml<BigDecimal> mongoXmlVol;
+		private final MongoXml<BigDecimal> mongoXmlVol;
 		private MyFutPriceVolQuery(MongoXml<SettlementDataInterface> mongoXmlSettle,
 				MongoXml<BigDecimal> mongoXmlVol){
 			this.mongoXmlSettle = mongoXmlSettle;
@@ -215,6 +215,51 @@ mongoXmlVolCollName=ImpliedVolColl
 			return outputCsv;
 		}
 		
+	}
+	
+	static class MyShortNameQuery  implements QueryInterface<String, List<String[]>> {
+		private final MongoXml<BigDecimal> mongoXmlVol;
+
+		private MyShortNameQuery(
+				MongoXml<BigDecimal> mongoXmlVol){
+			this.mongoXmlVol = mongoXmlVol;
+		}
+		
+		@Override
+		public List<String[]> get(String qparams, int timeoutValue,
+				TimeUnit timeUnitType) {
+			
+			// get type of request, which is in first param
+			// the qparams string has the http parameters.
+			//   
+    		String[] matches = qparams.split("&");
+    		Set<String> regexDerivNames = new TreeSet<String>();
+    		for(String match: matches){
+    			String[] pair = match.split("=");
+    			regexDerivNames.add(pair[1]);
+    		}
+			List<String[]> outputCsv = new ArrayList<String[]>();
+			Set<String> outputSet = 
+					new TreeSet<String>();
+			for(String regexName : regexDerivNames){
+    			Map<String, BigDecimal> vols = 
+    					mongoXmlVol.getByRegex(regexName);
+    			for(String sn:vols.keySet()){
+    				outputSet.add(sn);
+    			}
+			}
+			outputCsv.add(new String[]{bigAppend(outputSet)});
+			return outputCsv;
+		}
+		
+		private String bigAppend(Set<String> stringSet){
+			
+			StringBuffer sb = new StringBuffer(40*stringSet.size());
+			for(String s : stringSet){
+				sb.append(s+"\n");
+			}
+			return sb.toString();
+		}
 	}
 
 }
