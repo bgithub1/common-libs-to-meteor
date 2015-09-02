@@ -3,6 +3,7 @@ package com.billybyte.commonlibstometeor.runs.examples;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,11 @@ import com.billybyte.commonstaticmethods.Utils;
 import com.billybyte.dse.DerivativeSetEngine;
 import com.billybyte.dse.debundles.DerivativeSetEngineBuilder;
 import com.billybyte.dse.inputs.InBlk;
+import com.billybyte.marketdata.MarketDataComLib;
+import com.billybyte.marketdata.SecDef;
+import com.billybyte.marketdata.SecEnums.SecCurrency;
+import com.billybyte.marketdata.SecEnums.SecExchange;
+import com.billybyte.marketdata.SecEnums.SecSymbolType;
 import com.billybyte.mongo.MongoDatabaseNames;
 import com.billybyte.mongo.MongoXml;
 import com.billybyte.queries.ComplexQueryResult;
@@ -107,6 +113,8 @@ mongoXmlVolCollName=ImpliedVolColl
 		// end mongoXmlSettle
 		httpServerQuery.addAlternativePath("/futpricevol", new MyFutPriceVolQuery(mongoXmlSettle,mongoXmlVol));
 		httpServerQuery.addAlternativePath("/shortnames", new MyShortNameQuery(mongoXmlVol));
+		//MySpotSettleVolQuery
+		httpServerQuery.addAlternativePath("/spotfutpricevol", new MySpotSettleVolQuery(mongoXmlSettle,mongoXmlVol,dse.getSdQuery(),Calendar.getInstance()));
 		httpServerQuery.start();
 	}
 	
@@ -201,6 +209,9 @@ mongoXmlVolCollName=ImpliedVolColl
     				String sn = entry.getKey();
     				BigDecimal vol = entry.getValue();
     				if(vol!=null){
+        				if(!outputMap.containsKey(sn)){
+        					outputMap.put(sn, new String[]{sn,"",""});
+        				}
     					String[] output = outputMap.get(sn);
     					output[2] = vol.toString();
     				}
@@ -261,5 +272,95 @@ mongoXmlVolCollName=ImpliedVolColl
 			return sb.toString();
 		}
 	}
+	
+	
+	// get settles and vols for the spot futures contract
+	static class MySpotSettleVolQuery  implements QueryInterface<String, List<String[]>> {
+		private final QueryInterface<String, SecDef> sdQuery;
+		private final MyFutPriceVolQuery mySettleVolQuery;
+		private final Calendar businessDay;
+		
+		private MySpotSettleVolQuery(
+				MongoXml<SettlementDataInterface> mongoXmlSettle,
+				MongoXml<BigDecimal> mongoXmlVol,
+				QueryInterface<String, SecDef> sdQuery,
+				Calendar businessDay){
+			this.sdQuery = sdQuery;
+			this.mySettleVolQuery = new MyFutPriceVolQuery(mongoXmlSettle, mongoXmlVol);
+			this.businessDay = businessDay;
+		}
+		
+		@Override
+		/**
+		 * qparams is a string like p1=NG.FUT.NYMEX&p2=CL.FUT.NYMEX&p3=ES.FUT.GLOBEX
+		 *   that you receive from HttpCsvQueryServer
+		 */
+		public List<String[]> get(String qparams, int timeoutValue,
+				TimeUnit timeUnitType) {
+			// get type of request, which is in first param
+			// the qparams string has the http parameters.
+			//   
+    		String[] matches = qparams.split("&");
+    		Map<String, String> partialSnToSpotSn = new TreeMap<String, String>();
+    		for(String match: matches){
+    			String[] pair = match.split("=");
+    			if(pair==null || pair.length<2){
+    				// no partial name
+    				Utils.prtObErrMess(this.getClass(), "param: "+pair[0]+" only has is missing the partial shortName");
+    				continue;
+    			}
+    			String partialSn = pair[1];
+    			String[] parts = partialSn.split("\\.");
+    			if(parts.length<3){
+    				Utils.prtObErrMess(this.getClass(), "partial shortName: "+partialSn+" only has 2 parts, not 3.  It needs to have symbol.type.exchange");
+    				partialSnToSpotSn.put(partialSn, null);
+    				continue;
+    			}
+    			String symbol = parts[0];
+    			
+    			SecSymbolType type;
+				SecExchange exchange;
+				SecCurrency currency;
+				try {
+					type = SecSymbolType.fromString(parts[1]);
+					exchange = SecExchange.fromString(parts[2]);
+					currency = SecCurrency.fromString("USD");
+					if(parts.length>3){
+						currency = SecCurrency.fromString(parts[3]);
+					}
+				} catch (Exception e) {					
+					e.printStackTrace();
+					continue;
+				}
+    			
+    			SecDef spotSd = 
+    					MarketDataComLib.getSpotContractPerBusinessDay(sdQuery, symbol, type, exchange, currency, null, null, businessDay);
+    			if(spotSd==null){
+    				partialSnToSpotSn.put(partialSn, null);
+    			}else{
+    				partialSnToSpotSn.put(partialSn, spotSd.getShortName());
+    			}
+    			
+    		}
+    		
+			String qparamForFutVolQuery = "";
+			
+			int i = 1;
+			int len = partialSnToSpotSn.size();
+			for(Entry<String, String> entry : partialSnToSpotSn.entrySet()){
+				String sn = entry.getValue();
+				if(sn!=null){
+					qparamForFutVolQuery += "p" + i + "="+sn;
+				}
+				if(i<len){
+					qparamForFutVolQuery += "&";
+				}
+				i +=1;
+			}
+			return mySettleVolQuery.get(qparamForFutVolQuery, timeoutValue, timeUnitType);
+		}
+
+	}
+
 
 }
