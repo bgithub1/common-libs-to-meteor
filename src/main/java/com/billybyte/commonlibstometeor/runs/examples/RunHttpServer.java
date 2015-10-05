@@ -279,6 +279,8 @@ mongoXmlVolCollName=ImpliedVolColl
 		private final QueryInterface<String, SecDef> sdQuery;
 		private final MyFutPriceVolQuery mySettleVolQuery;
 		private final Calendar businessDay;
+		private final MongoXml<SettlementDataInterface> mongoXmlSettle;
+		private final MongoXml<BigDecimal> mongoXmlVol;
 		
 		private MySpotSettleVolQuery(
 				MongoXml<SettlementDataInterface> mongoXmlSettle,
@@ -288,6 +290,8 @@ mongoXmlVolCollName=ImpliedVolColl
 			this.sdQuery = sdQuery;
 			this.mySettleVolQuery = new MyFutPriceVolQuery(mongoXmlSettle, mongoXmlVol);
 			this.businessDay = businessDay;
+			this.mongoXmlSettle = mongoXmlSettle;
+			this.mongoXmlVol = mongoXmlVol;
 		}
 		
 		@Override
@@ -300,64 +304,128 @@ mongoXmlVolCollName=ImpliedVolColl
 			// get type of request, which is in first param
 			// the qparams string has the http parameters.
 			//   
+//    		String[] matches = qparams.split("&");
+//    		Map<String, String> partialSnToSpotSn = new TreeMap<String, String>();
+//    		for(String match: matches){
+//    			String[] pair = match.split("=");
+//    			if(pair==null || pair.length<2){
+//    				// no partial name
+//    				Utils.prtObErrMess(this.getClass(), "param: "+pair[0]+" only has is missing the partial shortName");
+//    				continue;
+//    			}
+//    			String partialSn = pair[1];
+//    			String[] parts = partialSn.split("\\.");
+//    			if(parts.length<3){
+//    				Utils.prtObErrMess(this.getClass(), "partial shortName: "+partialSn+" only has 2 parts, not 3.  It needs to have symbol.type.exchange");
+//    				partialSnToSpotSn.put(partialSn, null);
+//    				continue;
+//    			}
+//    			String symbol = parts[0];
+//    			
+//    			SecSymbolType type;
+//				SecExchange exchange;
+//				SecCurrency currency;
+//				try {
+//					type = SecSymbolType.fromString(parts[1]);
+//					exchange = SecExchange.fromString(parts[2]);
+//					currency = SecCurrency.fromString("USD");
+//					if(parts.length>3){
+//						currency = SecCurrency.fromString(parts[3]);
+//					}
+//				} catch (Exception e) {					
+//					e.printStackTrace();
+//					continue;
+//				}
+//    			
+//    			SecDef spotSd = 
+//    					MarketDataComLib.getSpotContractPerBusinessDay(sdQuery, symbol, type, exchange, currency, null, null, businessDay);
+//    			if(spotSd==null){
+//    				partialSnToSpotSn.put(partialSn, null);
+//    			}else{
+//    				partialSnToSpotSn.put(partialSn, spotSd.getShortName());
+//    			}
+//    			
+//    		}
+//    		
+//			String qparamForFutVolQuery = "";
+//			
+//			int i = 1;
+//			int len = partialSnToSpotSn.size();
+//			for(Entry<String, String> entry : partialSnToSpotSn.entrySet()){
+//				String sn = entry.getValue();
+//				if(sn!=null){
+//					qparamForFutVolQuery += "p" + i + "="+sn;
+//				}
+//				if(i<len){
+//					qparamForFutVolQuery += "&";
+//				}
+//				i +=1;
+//			}
+//			return mySettleVolQuery.get(qparamForFutVolQuery, timeoutValue, timeUnitType);
+//		}
+
     		String[] matches = qparams.split("&");
-    		Map<String, String> partialSnToSpotSn = new TreeMap<String, String>();
+    		Set<String> regexDerivNames = new TreeSet<String>();
     		for(String match: matches){
     			String[] pair = match.split("=");
-    			if(pair==null || pair.length<2){
-    				// no partial name
-    				Utils.prtObErrMess(this.getClass(), "param: "+pair[0]+" only has is missing the partial shortName");
-    				continue;
-    			}
-    			String partialSn = pair[1];
-    			String[] parts = partialSn.split("\\.");
-    			if(parts.length<3){
-    				Utils.prtObErrMess(this.getClass(), "partial shortName: "+partialSn+" only has 2 parts, not 3.  It needs to have symbol.type.exchange");
-    				partialSnToSpotSn.put(partialSn, null);
-    				continue;
-    			}
-    			String symbol = parts[0];
-    			
-    			SecSymbolType type;
-				SecExchange exchange;
-				SecCurrency currency;
-				try {
-					type = SecSymbolType.fromString(parts[1]);
-					exchange = SecExchange.fromString(parts[2]);
-					currency = SecCurrency.fromString("USD");
-					if(parts.length>3){
-						currency = SecCurrency.fromString(parts[3]);
-					}
-				} catch (Exception e) {					
-					e.printStackTrace();
-					continue;
-				}
-    			
-    			SecDef spotSd = 
-    					MarketDataComLib.getSpotContractPerBusinessDay(sdQuery, symbol, type, exchange, currency, null, null, businessDay);
-    			if(spotSd==null){
-    				partialSnToSpotSn.put(partialSn, null);
-    			}else{
-    				partialSnToSpotSn.put(partialSn, spotSd.getShortName());
-    			}
-    			
+    			regexDerivNames.add(pair[1]);
     		}
-    		
-			String qparamForFutVolQuery = "";
+			List<String[]> outputCsv = new ArrayList<String[]>();
+			String[] header = {"shortName","settle","settleVol"};
+			outputCsv.add(header);
+			Map<String, String[]> outputMap = 
+					new TreeMap<String, String[]>();
 			
-			int i = 1;
-			int len = partialSnToSpotSn.size();
-			for(Entry<String, String> entry : partialSnToSpotSn.entrySet()){
-				String sn = entry.getValue();
-				if(sn!=null){
-					qparamForFutVolQuery += "p" + i + "="+sn;
-				}
-				if(i<len){
-					qparamForFutVolQuery += "&";
-				}
-				i +=1;
+			for(String regexName : regexDerivNames){
+    			Map<String, SettlementDataInterface> settles = 
+    					mongoXmlSettle.getByRegex(regexName);
+    			if(settles!=null && settles.size()>0){
+    				List<String> orderedSns = new ArrayList<String>(new TreeSet<String>(settles.keySet()));
+    				String spotName = orderedSns.get(0);
+    				SettlementDataInterface spotSettle = settles.get(spotName);
+    				settles.clear();
+    				settles.put(spotName, spotSettle);
+    			}
+    			Map<String, BigDecimal> vols = 
+    					mongoXmlVol.getByRegex(regexName);
+    			if(vols!=null && vols.size()>0){
+    				List<String> orderedSns = new ArrayList<String>(new TreeSet<String>(vols.keySet()));
+    				String spotName = orderedSns.get(0);
+    				BigDecimal spotVol = vols.get(spotName);
+    				vols.clear();
+    				vols.put(spotName, spotVol);
+    			}
+    			for(Entry<String, SettlementDataInterface> entry : settles.entrySet()){
+    				String sn = entry.getKey();
+    				if(!outputMap.containsKey(sn)){
+    					outputMap.put(sn, new String[]{sn,"",""});
+    				}
+    				SettlementDataInterface settle = 
+    						entry.getValue();
+    				if(settle!=null && settle.getPrice()!=null){
+    					String[] output = outputMap.get(sn);
+    					output[1] = settle.getPrice().toString();
+    				}
+    			}
+    			for(Entry<String, BigDecimal> entry : vols.entrySet()){
+    				String sn = entry.getKey();
+    				BigDecimal vol = entry.getValue();
+    				if(vol!=null){
+        				if(!outputMap.containsKey(sn)){
+        					outputMap.put(sn, new String[]{sn,"",""});
+        				}
+    					String[] output = outputMap.get(sn);
+    					output[2] = vol.toString();
+    				}
+    			}
+				
 			}
-			return mySettleVolQuery.get(qparamForFutVolQuery, timeoutValue, timeUnitType);
+			
+			for(String sn : outputMap.keySet()){
+				outputCsv.add(outputMap.get(sn));
+			}
+    		
+			return outputCsv;
 		}
 
 	}
